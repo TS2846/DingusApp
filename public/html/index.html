@@ -3,27 +3,10 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="script.js" type="module"></script>
-        <style>
-            body {
-                margin: 0 auto;
-                display: flex;
-                justify-content: center;
-                flex-direction: column;
-                height: 100vh;
-                width: 90%;
-                max-width: 1200px;
-            }
-            #message-container {
-                border: 1px teal;
-                flex-grow: 1;
-                overflow-y: auto;
-            }
-            #message-container div {
-                background-color: #ccc;
-                padding: 5px;
-            }
-        </style>
+        <link href="/meta/favicon.ico" rel="icon" type="image/x-icon">
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/scripts/index.js"></script>
+        <link rel="stylesheet" href="/css/style.css">
         <title>SocketIO Chat Application</title>
     </head>
     <body>
