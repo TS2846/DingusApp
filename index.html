@@ -6,22 +6,30 @@
         <script src="script.js" type="module"></script>
         <style>
             body {
-                margin: 0 auto;
+                margin: 3%;
                 display: flex;
                 justify-content: center;
                 flex-direction: column;
-                height: 100vh;
+                height: 50vh;
                 width: 90%;
                 max-width: 1200px;
             }
             #message-container {
-                border: 1px teal;
+                border: 1px solid teal;
                 flex-grow: 1;
                 overflow-y: auto;
             }
             #message-container div {
                 background-color: #ccc;
                 padding: 5px;
+            }
+            #message-container div:nth-child(2n){
+                background-color: whitesmoke;
+                padding: 5px;
+            }
+            
+            #form {
+                margin: 5px;
             }
         </style>
         <title>SocketIO Chat Application</title>
