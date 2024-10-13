@@ -1,0 +1,46 @@
+body {
+    margin: 3%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    height: 50vh;
+    width: 90%;
+    max-width: 1200px;
+}
+
+#message-container {
+    border: 1px solid teal;
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+#message-container div {
+    padding: 5px;
+}
+
+#form {
+    margin: 5px;
+}
+
+.sent-message {
+    text-align: left;
+    background-color: #ccc;
+}
+
+.recieved-message {
+    text-align: right;
+    background-color: whitesmoke;
+}
+
+.notification {
+    font-style: italic;
+    text-align: center;
+    background-color: #f2ff8b;
+}
+
+.error {
+    font-style: italic;
+    text-align: center;
+    background-color: #fa6a6a;
+}

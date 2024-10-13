@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="/meta/favicon.ico" rel="icon" type="image/x-icon">
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/scripts/index.js"></script>
+        <link rel="stylesheet" href="/css/style.css">
+        <title>SocketIO Chat Application</title>
+    </head>
+    <body>
+        <div id="message-container"></div>
+        <form id="form">
+            <label for="message-input">Message</label>
+            <input for="text" id="message-input">
+            <button type="submit" id="send-button">Send</button>
+            <label for="room-input">Room</label>
+            <input for="text" id="room-input">
+            <button type="button" id="room-button">Join</button>
+        </form>
+    </body>
+</html>
