@@ -22,7 +22,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('message:send', (user, message, room) => {
-        io.to(room).emit('message:update', message);
+        io.to(room).emit('message:update', user, message, room);
         console.log(
             'User ' + user + ' sending "' + message + '" to room ' + room,
         );
