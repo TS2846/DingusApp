@@ -1,9 +1,11 @@
-import React, {useRef, useState, useEffect, useContext} from 'react';
+import React, {useRef, useState, useEffect} from 'react';
 import {io} from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
 
 import ChatWindow from '@/components/organisms/ChatWindow';
 import UserContext from '@/contexts/UserContext';
+import Button from '@/components/atoms/Button';
+import Input from '@/components/atoms/Input';
 
 const URL = 'http://localhost:3001';
 export const socket = io(URL, {
@@ -85,19 +87,18 @@ export default function Home() {
                     <div className="flex flex-col w-full items-start">
                         <label htmlFor="room-input">Room</label>
                         <div className="flex flex-row gap-2 w-full items-start">
-                            <input
+                            <Input
                                 id="room-input"
-                                className="px-2 py-2 grow rounded-md border border-black"
-                                ref={roomInput}
+                                className="grow"
                                 type="text"
+                                ref={roomInput}
                             />
-                            <button
+                            <Button
+                                label="Join"
+                                className="px-6 py-2"
                                 type="submit"
                                 onClick={onRoomJoinClick}
-                                className="px-6 py-2 rounded-md border border-black"
-                            >
-                                Join
-                            </button>
+                            />
                         </div>
                     </div>
                 </form>
