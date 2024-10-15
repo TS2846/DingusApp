@@ -1,9 +1,18 @@
-import {useRef, useEffect} from 'react';
+import {useRef, useEffect, useContext} from 'react';
 import {FaUser} from 'react-icons/fa';
 
+import {useUserContext} from '@/contexts/UserContext';
+
 function Message({user, message}) {
+    const userID = useUserContext();
+    console.log('Current user: ' + userID + ' loading message from ' + user);
     return (
-        <div className="flex flex-col items-start px-2 py-2 bg-gray-50">
+        <div
+            className={
+                'flex flex-col px-2 py-2 bg-gray-50 ' +
+                (user === userID ? 'items-end' : 'items-start')
+            }
+        >
             <span className="text-sm flex flex-row items-center gap-1">
                 <span>{<FaUser />}</span>
                 <span className="text-gray-400 font-semibold">{user}</span>
@@ -22,10 +31,7 @@ export default function ChatWindow({
     const chatBottomRef = useRef(null);
 
     useEffect(() => {
-        console.log('Scrolling initiating..');
-
         if (chatBottomRef.current) {
-            console.log('Scrolling To bot');
             chatBottomRef.current.scrollTop =
                 chatBottomRef.current.scrollHeight;
         }
@@ -35,7 +41,7 @@ export default function ChatWindow({
         <>
             <div
                 id="chat-window"
-                className="w-full md:w-7/12 h-96 border border-black flex flex-col gap-2 overflow-y-auto py-2"
+                className="w-full md:w-7/12 h-96 border border-black flex flex-col gap-2 py-2 overflow-y-scroll"
                 ref={chatBottomRef}
             >
                 {messageStack.map((item, index) => (
@@ -48,7 +54,10 @@ export default function ChatWindow({
                 <div ref={chatBottomRef}></div>
             </div>
 
-            <form className="w-full md:w-1/2 flex flex-col gap-4 items-start">
+            <form
+                className="w-full md:w-1/2 flex flex-col gap-4 items-start"
+                autoComplete="off"
+            >
                 <div className="flex flex-col w-full items-start">
                     <label htmlFor="message-input">Message</label>
                     <div className="flex flex-row gap-2 w-full items-start">

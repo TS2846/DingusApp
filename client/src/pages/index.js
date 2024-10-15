@@ -1,8 +1,9 @@
-import React, {useRef, useState, useEffect} from 'react';
+import React, {useRef, useState, useEffect, useContext} from 'react';
 import {io} from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
 
-import ChatWindow from './Components/ChatWindow';
+import ChatWindow from '@/components/organisms/ChatWindow';
+import UserContext from '@/contexts/UserContext';
 
 const URL = 'http://localhost:3001';
 export const socket = io(URL, {
@@ -68,34 +69,39 @@ export default function Home() {
     }, []);
 
     return (
-        <div className="container mx-auto my-5 flex flex-col gap-4 items-center">
-            <ChatWindow
-                messageInput={messageInput}
-                setMessageInput={setMessageInput}
-                onMessageSubmit={onMessageSubmit}
-                messageStack={messageStack}
-            />
+        <UserContext.Provider value={userID}>
+            <div className="container mx-auto my-5 flex flex-col gap-4 items-center">
+                <ChatWindow
+                    messageInput={messageInput}
+                    setMessageInput={setMessageInput}
+                    onMessageSubmit={onMessageSubmit}
+                    messageStack={messageStack}
+                />
 
-            <form className="w-full md:w-1/2 flex flex-col gap-4 items-start">
-                <div className="flex flex-col w-full items-start">
-                    <label htmlFor="room-input">Room</label>
-                    <div className="flex flex-row gap-2 w-full items-start">
-                        <input
-                            id="room-input"
-                            className="px-2 py-2 grow rounded-md border border-black"
-                            ref={roomInput}
-                            type="text"
-                        />
-                        <button
-                            type="submit"
-                            onClick={onRoomJoinClick}
-                            className="px-6 py-2 rounded-md border border-black"
-                        >
-                            Join
-                        </button>
+                <form
+                    className="w-full md:w-1/2 flex flex-col gap-4 items-start"
+                    autoComplete="off"
+                >
+                    <div className="flex flex-col w-full items-start">
+                        <label htmlFor="room-input">Room</label>
+                        <div className="flex flex-row gap-2 w-full items-start">
+                            <input
+                                id="room-input"
+                                className="px-2 py-2 grow rounded-md border border-black"
+                                ref={roomInput}
+                                type="text"
+                            />
+                            <button
+                                type="submit"
+                                onClick={onRoomJoinClick}
+                                className="px-6 py-2 rounded-md border border-black"
+                            >
+                                Join
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </form>
-        </div>
+                </form>
+            </div>
+        </UserContext.Provider>
     );
 }
