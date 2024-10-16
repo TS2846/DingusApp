@@ -1,6 +1,9 @@
 const express = require('express');
 const {createServer} = require('node:http');
 const {Server} = require('socket.io');
+const {dbInit} = require('./db/init');
+
+dbInit('./db/messageapp.db');
 
 const ORIGIN = 3000;
 const PORT = 3001;
