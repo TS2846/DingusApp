@@ -3,9 +3,11 @@ import {io} from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
 
 import ChatWindow from '@/components/organisms/ChatWindow';
+import RecipientBox from '@/components/organisms/RoomBox';
 import UserContext from '@/contexts/UserContext';
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
+
 
 const URL = 'http://localhost:3001';
 export const socket = io(URL, {
@@ -19,6 +21,7 @@ export default function Home() {
     const [messageInput, setMessageInput] = useState('');
     const [currentRoom, setCurrentRoom] = useState('');
     const [messageStack, updateMessageStack] = useState([]);
+    const [roomStack, updateRoomStack] = useState([]);
 
     const onMessageSubmit = (e) => {
         e.preventDefault();
@@ -30,7 +33,6 @@ export default function Home() {
         if (!currentRoom) return; // TODO: Prompt user to join a room
 
         socket.emit('message:send', userID, messageInput, currentRoom);
-
         setMessageInput('');
     };
 
@@ -42,7 +44,7 @@ export default function Home() {
         if (!socket.connected) return;
 
         if (!room) return;
-
+        updateRoomStack((prev) => ([...prev, room])); //what the fuck??????????????????????
         socket.emit('room:join', userID, room);
     };
 
@@ -55,31 +57,34 @@ export default function Home() {
 
         function onRoomChange(user, room) {
             setCurrentRoom(room);
-
             // TODO: Notify user of successfully joining a room
         }
-
         socket.on('message:update', onMessageStackChange);
         socket.on('room:change', onRoomChange);
 
         return () => {
             socket.off('message:update', onMessageStackChange);
             socket.off('room:change', onRoomChange);
-
             socket.disconnect();
         };
     }, []);
 
     return (
         <UserContext.Provider value={userID}>
-            <div className="container mx-auto my-5 flex flex-col gap-4 items-center">
+          <div className="container flex flex-row items-center h-screen m-auto gap-4">
+                <div className="w-1/3 p-3 h-3/5 flex content-stretch justify-end">
+                  <RecipientBox
+                    roomStack={roomStack}>
+                </RecipientBox>
+                </div>
+            <div className="flex-grow my-5 flex flex-col gap-4 justify-start p-3">
+                
                 <ChatWindow
                     messageInput={messageInput}
                     setMessageInput={setMessageInput}
                     onMessageSubmit={onMessageSubmit}
                     messageStack={messageStack}
                 />
-
                 <form
                     className="w-full md:w-1/2 flex flex-col gap-4 items-start"
                     autoComplete="off"
@@ -102,6 +107,7 @@ export default function Home() {
                         </div>
                     </div>
                 </form>
+            </div>
             </div>
         </UserContext.Provider>
     );

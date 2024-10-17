@@ -21,7 +21,12 @@ export default function ChatWindow({
         <>
             <div
                 id="chat-window"
-                className="w-full md:w-7/12 h-96 border border-black flex flex-col gap-2 py-2 overflow-y-scroll"
+                className="w-2/3 md:w-7/12 h-96 border border-black flex flex-col gap-2 py-2 overflow-y-scroll 
+                  [&::-webkit-scrollbar]:w-2
+                  [&::-webkit-scrollbar-track]:rounded-full
+                  [&::-webkit-scrollbar-track]:bg-gray-100
+                  [&::-webkit-scrollbar-thumb]:rounded-full
+                  [&::-webkit-scrollbar-thumb]:bg-gray-300"
                 ref={chatBottomRef}
             >
                 {messageStack.map((item, index) => (
