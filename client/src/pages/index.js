@@ -31,7 +31,6 @@ export default function Home() {
         if (!messageInput) return;
 
         if (!currentRoom) return; // TODO: Prompt user to join a room
-
         socket.emit('message:send', userID, messageInput, currentRoom);
         setMessageInput('');
     };
@@ -44,7 +43,7 @@ export default function Home() {
         if (!socket.connected) return;
 
         if (!room) return;
-        updateRoomStack((prev) => ([...prev, room])); //what the fuck??????????????????????
+        updateRoomStack((prev) => ([...prev, room])); 
         socket.emit('room:join', userID, room);
     };
 
@@ -56,7 +55,8 @@ export default function Home() {
         }
 
         function onRoomChange(user, room) {
-            setCurrentRoom(room);
+            
+          setCurrentRoom(room);
             // TODO: Notify user of successfully joining a room
         }
         socket.on('message:update', onMessageStackChange);
@@ -74,6 +74,7 @@ export default function Home() {
           <div className="container flex flex-row items-center h-screen m-auto gap-4">
                 <div className="w-1/3 p-3 h-3/5 flex content-stretch justify-end">
                   <RecipientBox
+                    currentRoom = {currentRoom}
                     roomStack={roomStack}>
                 </RecipientBox>
                 </div>
