@@ -6,7 +6,10 @@ import parser from 'body-parser';
 
 import {
     authenticateUser,
+    getMessages,
+    getRooms,
     initializeDatabase,
+    insertMessage,
     insertUser,
 } from './helpers/dbHelpers';
 import {
@@ -34,17 +37,25 @@ const DB_PATH = join(__dirname, '../sqlite/messageapp.db');
 const db = initializeDatabase(DB_PATH);
 
 io.on('connection', (socket) => {
+    socket.join('6d612b41-3440-4f51-8e86-b88c6d60d83f')
     console.log('a user connected ' + socket.id);
 
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
-
-    socket.on('message:send', (user, message, room) => {
-        io.to(room).emit('message:update', user, message, room);
+    
+    socket.on('message:send', (user, message, room, time) => {
+        const row_id = insertMessage(db, user, room, message, time);
+        io.to(room).emit('message:new', {
+            id: row_id,
+            senderId: user,
+            roomId: room,
+            sent: time,
+            body: message
+        })// AFTER ENTERING THINGS INTO DB
         console.log(
-            'User ' + user + ' sending "' + message + '" to room ' + room,
-        );
+            'User ' + user + ' sending "' + message + '" to room ' + room +' at '+ time
+        )
     });
 
     socket.on('room:join', (user, room) => {
@@ -110,6 +121,18 @@ app.post('/login', (req, res) => {
         res.status(400).json({status: err_msg});
     }
 });
+
+app.get('/messages/:room_id', (req,res) => {//dumb
+    const room_id = req.params.room_id;
+    const messages = getMessages(db, room_id);
+    res.json(messages);
+})
+
+app.get('/rooms/:user_id', (req,res) => {
+    const user_id = req.params.user_id;
+    const rooms = getRooms(db, user_id);
+    res.json(rooms);
+}) 
 
 server.listen(PORT, () => {
     console.log('server running at http://localhost:' + PORT);
