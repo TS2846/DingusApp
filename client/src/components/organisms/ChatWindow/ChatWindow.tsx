@@ -1,10 +1,15 @@
 import {useRef, useEffect} from 'react';
 
 import Message from '@/components/molecules/Message';
-import {scrollToTop} from '@/helpers/ui_helpers';
+import {MessageAPI} from '@/interfaces/apiInterfaces';
+import {scrollToTop} from '@/helpers/uiHelpers';
 
-export default function ChatWindow({messageStack}) {
-    const chatBottomRef = useRef(null);
+type ChatWindowProps = {
+    messageStack: MessageAPI[];
+};
+
+export default function ChatWindow({messageStack}: ChatWindowProps) {
+    const chatBottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         scrollToTop(chatBottomRef);
@@ -22,7 +27,7 @@ export default function ChatWindow({messageStack}) {
             ref={chatBottomRef}
         >
             {messageStack.map((item, index) => (
-                <Message key={index} user={item.user} message={item.message} />
+                <Message key={index} message={item} />
             ))}
             <div ref={chatBottomRef}></div>
         </div>
