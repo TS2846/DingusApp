@@ -1,12 +1,19 @@
 import {FaPlus} from 'react-icons/fa';
 
-import ChatIcon from '@/components/molecules/ChatIcon';
-export default function RoomBox({
-    currentRoom,
+import Room from '@/components/molecules/Room';
+import {RoomAPI} from '@/interfaces/apiInterfaces';
+
+type RoomListProps = {
+    roomStack: RoomAPI[];
+    onRoomClick: (room: RoomAPI) => void;
+    onCreateRoom: (e: React.MouseEvent<HTMLDivElement>) => void;
+};
+
+export default function RoomList({
     roomStack,
     onRoomClick,
     onCreateRoom,
-}) {
+}: RoomListProps) {
     return (
         <div
             id="room-box"
@@ -24,12 +31,7 @@ export default function RoomBox({
                     [&::-webkit-scrollbar-thumb]:bg-gray-300"
             >
                 {roomStack.map((item, index) => (
-                    <ChatIcon
-                        key={index}
-                        currentRoom={currentRoom}
-                        room={item}
-                        onRoomClick={onRoomClick}
-                    />
+                    <Room key={index} room={item} onRoomClick={onRoomClick} />
                 ))}
             </div>
             <div
@@ -39,6 +41,11 @@ export default function RoomBox({
                     transition-all ease-in hover:cursor-pointer"
                 onClick={onCreateRoom}
             >
+                <FaPlus
+                    className={
+                        roomStack.length ? 'collapse' : 'absolute animate-ping'
+                    }
+                />
                 <FaPlus />
             </div>
         </div>

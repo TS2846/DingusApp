@@ -1,11 +1,19 @@
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
 
+type ChatInputProps = {
+    messageInput: string;
+    setMessageInput: React.Dispatch<React.SetStateAction<string>>;
+    onMessageSubmit: (
+        e: React.MouseEvent<HTMLButtonElement, React.MouseEvent>,
+    ) => void;
+};
+
 export default function ChatInput({
     messageInput,
     setMessageInput,
     onMessageSubmit,
-}) {
+}: ChatInputProps) {
     return (
         <form
             className="w-full flex flex-col gap-4 items-start"
@@ -16,7 +24,9 @@ export default function ChatInput({
                     id="message-input"
                     className="grow"
                     value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setMessageInput(e.target.value)
+                    }
                     type="text"
                 />
                 <Button
