@@ -1,13 +1,12 @@
 import React, {useRef, useState, useEffect} from 'react';
 import {io} from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
+import {FaPlus} from 'react-icons/fa';
 
 import ChatWindow from '@/components/organisms/ChatWindow';
 import ChatInput from '@/components/molecules/ChatInput';
 import RoomBox from '@/components/organisms/RoomBox';
 import UserContext from '@/contexts/UserContext';
-import Button from '@/components/atoms/Button';
-import Input from '@/components/atoms/Input';
 
 const URL = 'http://localhost:3001';
 export const socket = io(URL, {
@@ -17,15 +16,10 @@ export const socket = io(URL, {
 const userID = uuidv4();
 
 export default function Home() {
-    const roomInput = useRef('');
     const [messageInput, setMessageInput] = useState('');
     const [currentRoom, setCurrentRoom] = useState('');
     const [messageStack, updateMessageStack] = useState([]);
-    const [roomStack, updateRoomStack] = useState([
-        'Room 1',
-        'Room 2',
-        'Room 3',
-    ]);
+    const [roomStack, updateRoomStack] = useState([]);
 
     const onMessageSubmit = (e) => {
         e.preventDefault();
@@ -39,16 +33,20 @@ export default function Home() {
         setMessageInput('');
     };
 
-    const onRoomJoinClick = (e) => {
-        e.preventDefault();
+    const onRoomClick = (room) => {
+        if (room === currentRoom) return;
 
-        const room = roomInput.current.value;
+        if (!socket.connected) return; // TODO: Notify the of the connection problem
 
-        if (!socket.connected) return;
-
-        if (!room) return;
-        updateRoomStack((prev) => [...prev, room]);
         socket.emit('room:join', userID, room);
+    };
+
+    const onCreateRoom = () => {
+        if (!socket.connected) return; // TODO: Notify the of the connection problem
+
+        const newRoom = `Room ${roomStack.length + 1}`;
+        updateRoomStack((prev) => [newRoom, ...prev]);
+        socket.emit('room:join', userID, newRoom);
     };
 
     useEffect(() => {
@@ -60,12 +58,11 @@ export default function Home() {
 
         function onRoomChange(user, room) {
             setCurrentRoom(room);
+            updateMessageStack([]);
             // TODO: Notify user of successfully joining a room
         }
         socket.on('message:update', onMessageStackChange);
         socket.on('room:change', onRoomChange);
-
-        socket.emit('room:join', userID, 'Room 1');
 
         return () => {
             socket.off('message:update', onMessageStackChange);
@@ -78,19 +75,41 @@ export default function Home() {
         <UserContext.Provider value={userID}>
             <div className="container flex flex-row mx-auto h-screen min-h-96">
                 <div className="w-80 min-w-80 border-t border-l flex flex-col items-center justify-center">
-                    <RoomBox currentRoom={currentRoom} roomStack={roomStack} />
+                    <RoomBox
+                        currentRoom={currentRoom}
+                        roomStack={roomStack}
+                        onRoomClick={onRoomClick}
+                        onCreateRoom={onCreateRoom}
+                    />
                 </div>
                 <div className="grow flex flex-col relative">
-                    <div className="grow max-h-full flex flex-col items-center justify-center">
-                        <ChatWindow messageStack={messageStack} />
+                    <div
+                        className="grow max-h-full flex flex-col items-center justify-center border-r 
+                                    border-b border-t border-black rounded-md"
+                    >
+                        {currentRoom ? (
+                            <ChatWindow messageStack={messageStack} />
+                        ) : (
+                            <div className="flex flex-row gap-1 items-center justify-center">
+                                <div>Click the</div>
+                                <FaPlus className="inline" />
+                                <div>
+                                    icon to <b>create a Room</b>.
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="absolute w-full bottom-0 p-4 flex flex-row items-center justify-center">
-                        <ChatInput
-                            messageInput={messageInput}
-                            setMessageInput={setMessageInput}
-                            onMessageSubmit={onMessageSubmit}
-                        />
+                        {currentRoom ? (
+                            <ChatInput
+                                messageInput={messageInput}
+                                setMessageInput={setMessageInput}
+                                onMessageSubmit={onMessageSubmit}
+                            />
+                        ) : (
+                            ''
+                        )}
                     </div>
                 </div>
             </div>

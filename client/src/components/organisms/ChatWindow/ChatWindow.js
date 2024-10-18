@@ -13,8 +13,7 @@ export default function ChatWindow({messageStack}) {
     return (
         <div
             id="chat-window"
-            className="h-full w-full flex flex-col gap-2 py-2 overflow-y-scroll 
-            pt-20 pb-20 border-r border-b border-t border-black rounded-md
+            className="h-full w-full flex flex-col gap-2 py-2 overflow-y-scroll pt-20 pb-20
             [&::-webkit-scrollbar]:w-2
             [&::-webkit-scrollbar-track]:rounded-full
             [&::-webkit-scrollbar-track]:bg-gray-100
