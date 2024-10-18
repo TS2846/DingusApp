@@ -18,7 +18,7 @@ export const socket = io(URL, {
 });
 
 const user = {
-    id: uuidv4(),
+    id: 'f8823e0f-28aa-4471-9e1b-dcb400091efd',
     username: 'pdad12',
     displayName: 'Deepta',
 };
@@ -26,10 +26,14 @@ const user = {
 export default function Home() {
     const [messageInput, setMessageInput] = useState<string>('');
     const [currentRoom, setCurrentRoom] = useState<RoomAPI | undefined>(
-        undefined,
+        {
+            id:'6d612b41-3440-4f51-8e86-b88c6d60d83f',
+            roomName:'Room 1',
+            members:['f8823e0f-28aa-4471-9e1b-dcb400091efd']
+        }
     );
     const [messageStack, updateMessageStack] = useState<MessageAPI[]>([]);
-    const [roomStack, updateRoomStack] = useState<RoomAPI[]>([]);
+    const [roomStack, updateRoomStack] = useState<RoomAPI[]>([]); // TODO: Fetch roomstack from backend
 
     const onMessageSubmit = (
         e: React.MouseEvent<HTMLButtonElement, React.MouseEvent>,
@@ -57,6 +61,7 @@ export default function Home() {
         if (!socket.connected) return; // TODO: Notify the of the connection problem
 
         socket.emit('room:join', user.id, room.id);
+        // TODO: get roomstack from api
     };
 
     const onCreateRoom = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -78,7 +83,10 @@ export default function Home() {
         function onNewMessage(message: MessageAPI) {
             const roomId = message.roomId;
 
-            if (!currentRoom || currentRoom.id !== roomId) return; // TODO: Notify user about new message
+            if (!currentRoom || currentRoom.id !== roomId) {
+                console.log('Room mismatch');
+                return
+            }; // TODO: Notify user about new message
 
             updateMessageStack(prev => [...prev, message]);
         }

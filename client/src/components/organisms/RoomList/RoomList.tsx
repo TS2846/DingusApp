@@ -23,7 +23,7 @@ export default function RoomList({
                 Your Rooms
             </div>
             <div
-                className="grow overflow-y-scroll flex flex-col gap-2
+                className="h-full grow overflow-y-scroll flex flex-col gap-2
                     [&::-webkit-scrollbar]:w-2
                     [&::-webkit-scrollbar-track]:rounded-full
                     [&::-webkit-scrollbar-track]:bg-gray-100
@@ -43,7 +43,7 @@ export default function RoomList({
             >
                 <FaPlus
                     className={
-                        roomStack.length ? 'collapse' : 'absolute animate-ping'
+                        roomStack.length ? 'collapse absolute' : 'absolute animate-ping'
                     }
                 />
                 <FaPlus />
