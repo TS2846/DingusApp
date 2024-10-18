@@ -8,7 +8,7 @@ export default function Message({user, message}) {
     return (
         <div
             className={
-                'flex flex-col px-2 py-2 bg-gray-50 ' +
+                'flex flex-col py-2 bg-gray-50 px-5 border-b border-gray-400 ' +
                 (user === userID ? 'items-end' : 'items-start')
             }
         >

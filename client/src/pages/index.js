@@ -1,13 +1,12 @@
 import React, {useRef, useState, useEffect} from 'react';
 import {io} from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
+import {FaPlus} from 'react-icons/fa';
 
 import ChatWindow from '@/components/organisms/ChatWindow';
-import RecipientBox from '@/components/organisms/RoomBox';
+import ChatInput from '@/components/molecules/ChatInput';
+import RoomBox from '@/components/organisms/RoomBox';
 import UserContext from '@/contexts/UserContext';
-import Button from '@/components/atoms/Button';
-import Input from '@/components/atoms/Input';
-
 
 const URL = 'http://localhost:3001';
 export const socket = io(URL, {
@@ -17,7 +16,6 @@ export const socket = io(URL, {
 const userID = uuidv4();
 
 export default function Home() {
-    const roomInput = useRef('');
     const [messageInput, setMessageInput] = useState('');
     const [currentRoom, setCurrentRoom] = useState('');
     const [messageStack, updateMessageStack] = useState([]);
@@ -35,16 +33,20 @@ export default function Home() {
         setMessageInput('');
     };
 
-    const onRoomJoinClick = (e) => {
-        e.preventDefault();
+    const onRoomClick = (room) => {
+        if (room === currentRoom) return;
 
-        const room = roomInput.current.value;
+        if (!socket.connected) return; // TODO: Notify the of the connection problem
 
-        if (!socket.connected) return;
-
-        if (!room) return;
-        updateRoomStack((prev) => ([...prev, room])); 
         socket.emit('room:join', userID, room);
+    };
+
+    const onCreateRoom = () => {
+        if (!socket.connected) return; // TODO: Notify the of the connection problem
+
+        const newRoom = `Room ${roomStack.length + 1}`;
+        updateRoomStack((prev) => [newRoom, ...prev]);
+        socket.emit('room:join', userID, newRoom);
     };
 
     useEffect(() => {
@@ -55,8 +57,8 @@ export default function Home() {
         }
 
         function onRoomChange(user, room) {
-            
-          setCurrentRoom(room);
+            setCurrentRoom(room);
+            updateMessageStack([]);
             // TODO: Notify user of successfully joining a room
         }
         socket.on('message:update', onMessageStackChange);
@@ -71,44 +73,45 @@ export default function Home() {
 
     return (
         <UserContext.Provider value={userID}>
-          <div className="container flex flex-row items-center h-screen m-auto gap-4">
-                <div className="w-1/3 p-3 h-3/5 flex content-stretch justify-end">
-                  <RecipientBox
-                    currentRoom = {currentRoom}
-                    roomStack={roomStack}>
-                </RecipientBox>
+            <div className="container flex flex-row mx-auto h-screen min-h-96">
+                <div className="w-80 min-w-80 border-t border-l flex flex-col items-center justify-center">
+                    <RoomBox
+                        currentRoom={currentRoom}
+                        roomStack={roomStack}
+                        onRoomClick={onRoomClick}
+                        onCreateRoom={onCreateRoom}
+                    />
                 </div>
-            <div className="flex-grow my-5 flex flex-col gap-4 justify-start p-3">
-                
-                <ChatWindow
-                    messageInput={messageInput}
-                    setMessageInput={setMessageInput}
-                    onMessageSubmit={onMessageSubmit}
-                    messageStack={messageStack}
-                />
-                <form
-                    className="w-full md:w-1/2 flex flex-col gap-4 items-start"
-                    autoComplete="off"
-                >
-                    <div className="flex flex-col w-full items-start">
-                        <label htmlFor="room-input">Room</label>
-                        <div className="flex flex-row gap-2 w-full items-start">
-                            <Input
-                                id="room-input"
-                                className="grow"
-                                type="text"
-                                ref={roomInput}
-                            />
-                            <Button
-                                label="Join"
-                                className="px-6 py-2"
-                                type="submit"
-                                onClick={onRoomJoinClick}
-                            />
-                        </div>
+                <div className="grow flex flex-col relative">
+                    <div
+                        className="grow max-h-full flex flex-col items-center justify-center border-r 
+                                    border-b border-t border-black rounded-md"
+                    >
+                        {currentRoom ? (
+                            <ChatWindow messageStack={messageStack} />
+                        ) : (
+                            <div className="flex flex-row gap-1 items-center justify-center">
+                                <div>Click the</div>
+                                <FaPlus className="inline" />
+                                <div>
+                                    icon to <b>create a Room</b>.
+                                </div>
+                            </div>
+                        )}
                     </div>
-                </form>
-            </div>
+
+                    <div className="absolute w-full bottom-0 p-4 flex flex-row items-center justify-center">
+                        {currentRoom ? (
+                            <ChatInput
+                                messageInput={messageInput}
+                                setMessageInput={setMessageInput}
+                                onMessageSubmit={onMessageSubmit}
+                            />
+                        ) : (
+                            ''
+                        )}
+                    </div>
+                </div>
             </div>
         </UserContext.Provider>
     );
