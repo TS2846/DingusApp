@@ -3,11 +3,11 @@ import {io} from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
 
 import ChatWindow from '@/components/organisms/ChatWindow';
-import RecipientBox from '@/components/organisms/RoomBox';
+import ChatInput from '@/components/molecules/ChatInput';
+import RoomBox from '@/components/organisms/RoomBox';
 import UserContext from '@/contexts/UserContext';
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
-
 
 const URL = 'http://localhost:3001';
 export const socket = io(URL, {
@@ -21,7 +21,11 @@ export default function Home() {
     const [messageInput, setMessageInput] = useState('');
     const [currentRoom, setCurrentRoom] = useState('');
     const [messageStack, updateMessageStack] = useState([]);
-    const [roomStack, updateRoomStack] = useState([]);
+    const [roomStack, updateRoomStack] = useState([
+        'Room 1',
+        'Room 2',
+        'Room 3',
+    ]);
 
     const onMessageSubmit = (e) => {
         e.preventDefault();
@@ -43,7 +47,7 @@ export default function Home() {
         if (!socket.connected) return;
 
         if (!room) return;
-        updateRoomStack((prev) => ([...prev, room])); 
+        updateRoomStack((prev) => [...prev, room]);
         socket.emit('room:join', userID, room);
     };
 
@@ -55,12 +59,13 @@ export default function Home() {
         }
 
         function onRoomChange(user, room) {
-            
-          setCurrentRoom(room);
+            setCurrentRoom(room);
             // TODO: Notify user of successfully joining a room
         }
         socket.on('message:update', onMessageStackChange);
         socket.on('room:change', onRoomChange);
+
+        socket.emit('room:join', userID, 'Room 1');
 
         return () => {
             socket.off('message:update', onMessageStackChange);
@@ -71,44 +76,23 @@ export default function Home() {
 
     return (
         <UserContext.Provider value={userID}>
-          <div className="container flex flex-row items-center h-screen m-auto gap-4">
-                <div className="w-1/3 p-3 h-3/5 flex content-stretch justify-end">
-                  <RecipientBox
-                    currentRoom = {currentRoom}
-                    roomStack={roomStack}>
-                </RecipientBox>
+            <div className="container flex flex-row mx-auto h-screen min-h-96">
+                <div className="w-80 min-w-80 border-t border-l flex flex-col items-center justify-center">
+                    <RoomBox currentRoom={currentRoom} roomStack={roomStack} />
                 </div>
-            <div className="flex-grow my-5 flex flex-col gap-4 justify-start p-3">
-                
-                <ChatWindow
-                    messageInput={messageInput}
-                    setMessageInput={setMessageInput}
-                    onMessageSubmit={onMessageSubmit}
-                    messageStack={messageStack}
-                />
-                <form
-                    className="w-full md:w-1/2 flex flex-col gap-4 items-start"
-                    autoComplete="off"
-                >
-                    <div className="flex flex-col w-full items-start">
-                        <label htmlFor="room-input">Room</label>
-                        <div className="flex flex-row gap-2 w-full items-start">
-                            <Input
-                                id="room-input"
-                                className="grow"
-                                type="text"
-                                ref={roomInput}
-                            />
-                            <Button
-                                label="Join"
-                                className="px-6 py-2"
-                                type="submit"
-                                onClick={onRoomJoinClick}
-                            />
-                        </div>
+                <div className="grow flex flex-col relative">
+                    <div className="grow max-h-full flex flex-col items-center justify-center">
+                        <ChatWindow messageStack={messageStack} />
                     </div>
-                </form>
-            </div>
+
+                    <div className="absolute w-full bottom-0 p-4 flex flex-row items-center justify-center">
+                        <ChatInput
+                            messageInput={messageInput}
+                            setMessageInput={setMessageInput}
+                            onMessageSubmit={onMessageSubmit}
+                        />
+                    </div>
+                </div>
             </div>
         </UserContext.Provider>
     );

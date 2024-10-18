@@ -1,9 +1,6 @@
-import {forwardRef} from 'react';
 import {twMerge} from 'tailwind-merge';
 
-export default forwardRef(function Input(props, ref) {
-    const {className = '', ...restProps} = props;
-
+export default function Input({className = '', ...restProps}) {
     return (
         <input
             className={twMerge(
@@ -11,7 +8,6 @@ export default forwardRef(function Input(props, ref) {
                 className,
             )}
             {...restProps}
-            ref={ref}
         />
     );
-});
+}
