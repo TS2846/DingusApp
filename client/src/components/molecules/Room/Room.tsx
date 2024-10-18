@@ -1,5 +1,15 @@
-export default function ChatIcon({currentRoom, room, onRoomClick}) {
-    const isActive = room === currentRoom;
+import {useRoomContext} from '@/contexts/RoomContext';
+import {RoomAPI} from '@/interfaces/apiInterfaces';
+
+type RoomProps = {
+    room: RoomAPI;
+    onRoomClick: (room: RoomAPI) => void;
+};
+
+export default function Room({room, onRoomClick}: RoomProps) {
+    const currentRoom = useRoomContext();
+
+    const isActive = room.id === currentRoom?.id;
     const colors = isActive
         ? 'bg-purple-600 text-white font-bold'
         : 'bg-gray-200 text-gray-800 hover:bg-gray-300';
@@ -12,7 +22,7 @@ export default function ChatIcon({currentRoom, room, onRoomClick}) {
                 ${colors}`}
             onClick={() => onRoomClick(room)}
         >
-            {room}
+            {room.roomName}
         </div>
     );
 }

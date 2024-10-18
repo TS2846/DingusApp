@@ -1,27 +1,39 @@
-import React, {useRef, useState, useEffect} from 'react';
+'use client';
+
+import React, {useState, useEffect} from 'react';
 import {io} from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
 import {FaPlus} from 'react-icons/fa';
 
 import ChatWindow from '@/components/organisms/ChatWindow';
 import ChatInput from '@/components/molecules/ChatInput';
-import RoomBox from '@/components/organisms/RoomBox';
+import RoomList from '@/components/organisms/RoomList';
 import UserContext from '@/contexts/UserContext';
+import RoomContext from '@/contexts/RoomContext';
+import {MessageAPI, RoomAPI} from '@/interfaces/apiInterfaces';
 
 const URL = 'http://localhost:3001';
 export const socket = io(URL, {
     autoConnect: false,
 });
 
-const userID = uuidv4();
+const user = {
+    id: uuidv4(),
+    username: 'pdad12',
+    displayName: 'Deepta',
+};
 
 export default function Home() {
-    const [messageInput, setMessageInput] = useState('');
-    const [currentRoom, setCurrentRoom] = useState('');
-    const [messageStack, updateMessageStack] = useState([]);
-    const [roomStack, updateRoomStack] = useState([]);
+    const [messageInput, setMessageInput] = useState<string>('');
+    const [currentRoom, setCurrentRoom] = useState<RoomAPI | undefined>(
+        undefined,
+    );
+    const [messageStack, updateMessageStack] = useState<MessageAPI[]>([]);
+    const [roomStack, updateRoomStack] = useState<RoomAPI[]>([]);
 
-    const onMessageSubmit = (e) => {
+    const onMessageSubmit = (
+        e: React.MouseEvent<HTMLButtonElement, React.MouseEvent>,
+    ) => {
         e.preventDefault();
 
         if (!socket.connected) return; // TODO: Prompt use to wait for a connection
@@ -29,54 +41,67 @@ export default function Home() {
         if (!messageInput) return;
 
         if (!currentRoom) return; // TODO: Prompt user to join a room
-        socket.emit('message:send', userID, messageInput, currentRoom);
+        socket.emit(
+            'message:send',
+            user.id,
+            messageInput,
+            currentRoom.id,
+            Date.now(),
+        );
         setMessageInput('');
     };
 
-    const onRoomClick = (room) => {
-        if (room === currentRoom) return;
+    const onRoomClick = (room: RoomAPI) => {
+        if (room.id === currentRoom?.id) return;
 
         if (!socket.connected) return; // TODO: Notify the of the connection problem
 
-        socket.emit('room:join', userID, room);
+        socket.emit('room:join', user.id, room.id);
     };
 
-    const onCreateRoom = () => {
-        if (!socket.connected) return; // TODO: Notify the of the connection problem
+    const onCreateRoom = (e: React.MouseEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        if (!socket.connected) return; // TODO: Notify user about connection problem
 
-        const newRoom = `Room ${roomStack.length + 1}`;
-        updateRoomStack((prev) => [newRoom, ...prev]);
-        socket.emit('room:join', userID, newRoom);
+        const newRoom = {
+            id: uuidv4(),
+            roomName: `Room ${roomStack.length + 1}`,
+            members: [user.id],
+        };
+        updateRoomStack(prev => [newRoom, ...prev]);
+        socket.emit('room:join', user.id, newRoom.id);
     };
 
     useEffect(() => {
         socket.connect();
 
-        function onMessageStackChange(user, message, room) {
-            updateMessageStack((prev) => [...prev, {user, message, room}]);
+        function onNewMessage(message: MessageAPI) {
+            const roomId = message.roomId;
+
+            if (!currentRoom || currentRoom.id !== roomId) return; // TODO: Notify user about new message
+
+            updateMessageStack(prev => [...prev, message]);
         }
 
-        function onRoomChange(user, room) {
+        function onRoomChange(room: RoomAPI) {
             setCurrentRoom(room);
-            updateMessageStack([]);
             // TODO: Notify user of successfully joining a room
         }
-        socket.on('message:update', onMessageStackChange);
+        socket.on('message:new', onNewMessage);
         socket.on('room:change', onRoomChange);
 
         return () => {
-            socket.off('message:update', onMessageStackChange);
+            socket.off('message:new', onNewMessage);
             socket.off('room:change', onRoomChange);
             socket.disconnect();
         };
-    }, []);
+    }, [currentRoom]);
 
     return (
-        <UserContext.Provider value={userID}>
-            <div className="container flex flex-row mx-auto h-screen min-h-96">
+        <UserContext.Provider value={user}>
+            <RoomContext.Provider value={currentRoom}>
                 <div className="w-80 min-w-80 border-t border-l flex flex-col items-center justify-center">
-                    <RoomBox
-                        currentRoom={currentRoom}
+                    <RoomList
                         roomStack={roomStack}
                         onRoomClick={onRoomClick}
                         onCreateRoom={onCreateRoom}
@@ -112,7 +137,7 @@ export default function Home() {
                         )}
                     </div>
                 </div>
-            </div>
+            </RoomContext.Provider>
         </UserContext.Provider>
     );
 }

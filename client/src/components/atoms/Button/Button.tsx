@@ -1,6 +1,16 @@
 import {twMerge} from 'tailwind-merge';
 
-export default function Button({label, className = '', ...restProps}) {
+type ButtonProps = {
+    label: string;
+    className: string;
+    [x: string]: any;
+};
+
+export default function Button({
+    label,
+    className = '',
+    ...restProps
+}: ButtonProps) {
     return (
         <button
             className={twMerge(
