@@ -52,12 +52,17 @@ export function initializeDatabase(file: string): Database {
             ) WITHOUT ROWID;
         `);
 
-        const dummyUser = {id: 'f8823e0f-28aa-4471-9e1b-dcb400091efd', username: 'pdad12', password: 'password', name:'Deepta'};
-        if (!userExists(db, dummyUser.id, dummyUser.username)){
-            insertUser(db, dummyUser)
-            console.log('inserted dummy user')
+        const dummyUser = {
+            id: 'f8823e0f-28aa-4471-9e1b-dcb400091efd',
+            username: 'pdad12',
+            password: 'password',
+            name: 'Deepta',
+        };
+        if (!userExists(db, dummyUser.id, dummyUser.username)) {
+            insertUser(db, dummyUser);
+            console.log('inserted dummy user');
         }
-        
+
         db.exec(`
             CREATE TABLE IF NOT EXISTS rooms(
                 id          NCHAR(36)       PRIMARY KEY,
@@ -66,11 +71,11 @@ export function initializeDatabase(file: string): Database {
             ) WITHOUT ROWID;
         `);
         const dummyRoom = {
-            id:'6d612b41-3440-4f51-8e86-b88c6d60d83f',
-            name:'Room 1'
-        }
-        if (!roomExists(db, dummyRoom.id)){
-            insertRoom(db, dummyRoom)
+            id: '6d612b41-3440-4f51-8e86-b88c6d60d83f',
+            name: 'Room 1',
+        };
+        if (!roomExists(db, dummyRoom.id)) {
+            insertRoom(db, dummyRoom);
         }
         db.exec(`
             CREATE TABLE IF NOT EXISTS users_rooms(
@@ -128,6 +133,8 @@ export function insertUser(db: Database, user: SignupPayload) {
     const _password = hashSync(user.password, genSaltSync());
 
     stmt.run(user.id, user.username, _password, user.name);
+
+    return {id: user.id, username: user.username, name: user.name};
 }
 
 export function authenticateUser(db: Database, user: LoginPayload) {
@@ -139,6 +146,8 @@ export function authenticateUser(db: Database, user: LoginPayload) {
 
     if (!compareSync(user.password, row._password))
         throw new IncorrectPasswordError('password is invalid');
+
+    return {id: row.id, username: row.username, name: row.name};
 }
 
 export function userExists(
@@ -160,8 +169,8 @@ export function insertMessage(
     user_id: string,
     room_id: string,
     message: string,
-    time: Date
-){
+    time: Date,
+) {
     const stmt = db.prepare(
         `INSERT INTO messages (user_id, room_id, sent_at, body) VALUES (?, ?, ?, ?)`,
     );
@@ -169,49 +178,34 @@ export function insertMessage(
     return info.lastInsertRowid;
 }
 
-export function getMessages(
-    db: Database,
-    room_id: string
-){
-    const messages = db.prepare<string[], Message>(
-        `SELECT * FROM messages WHERE room_id = ?`
-    ).all(room_id)
-    return messages
+export function getMessages(db: Database, room_id: string) {
+    const messages = db
+        .prepare<string[], Message>(`SELECT * FROM messages WHERE room_id = ?`)
+        .all(room_id);
+    return messages;
 }
 
-export function insertRoom(
-    db: Database,
-    room: Room
-){
-    const stmt = db.prepare(
-            'INSERT INTO rooms (id, name) VALUES (?, ?)'
-        )
+export function insertRoom(db: Database, room: Room) {
+    const stmt = db.prepare('INSERT INTO rooms (id, name) VALUES (?, ?)');
     stmt.run(room.id, room.name);
 }
 
-export function roomExists(
-    db: Database,
-    room_id: string
-){
+export function roomExists(db: Database, room_id: string) {
     const row = db
-        .prepare<string[], Room>(
-            `SELECT * FROM rooms WHERE id = ?`,
-        )
+        .prepare<string[], Room>(`SELECT * FROM rooms WHERE id = ?`)
         .get(room_id);
 
     return row ? true : false;
 }
 
-export function getRooms(
-    db: Database, 
-    user_id: string
-){
-    const row = db.prepare<string[], Room>(
-            'SELECT rooms.id, rooms.name FROM rooms INNER JOIN users_rooms ON rooms.id = users_rooms.room_id WHERE users_rooms.user_id = ?'        
+export function getRooms(db: Database, user_id: string) {
+    const row = db
+        .prepare<string[], Room>(
+            'SELECT rooms.id, rooms.name FROM rooms INNER JOIN users_rooms ON rooms.id = users_rooms.room_id WHERE users_rooms.user_id = ?',
         )
-        .all(user_id)
-        
-    return row
+        .all(user_id);
+
+    return row;
 }
 //TODO: implement function to write message and room into SQLite db
 // when user creates room, insert room into db and create link to user

@@ -4,6 +4,7 @@ import React, {useState, useEffect} from 'react';
 import {io} from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
 import {FaPlus} from 'react-icons/fa';
+import {cookies} from 'next/headers';
 
 import ChatWindow from '@/components/organisms/ChatWindow';
 import ChatInput from '@/components/molecules/ChatInput';
@@ -13,25 +14,24 @@ import RoomContext from '@/contexts/RoomContext';
 import {MessageAPI, RoomAPI} from '@/interfaces/apiInterfaces';
 
 const URL = 'http://localhost:3001';
-export const socket = io(URL, {
+const socket = io(URL, {
     autoConnect: false,
 });
 
+const cookiesStore = cookies();
 const user = {
-    id: 'f8823e0f-28aa-4471-9e1b-dcb400091efd',
-    username: 'pdad12',
-    displayName: 'Deepta',
+    id: cookiesStore.get('id')?.value || '',
+    username: cookiesStore.get('username')?.value || '',
+    displayName: cookiesStore.get('name')?.value || '',
 };
 
 export default function Home() {
     const [messageInput, setMessageInput] = useState<string>('');
-    const [currentRoom, setCurrentRoom] = useState<RoomAPI | undefined>(
-        {
-            id:'6d612b41-3440-4f51-8e86-b88c6d60d83f',
-            roomName:'Room 1',
-            members:['f8823e0f-28aa-4471-9e1b-dcb400091efd']
-        }
-    );
+    const [currentRoom, setCurrentRoom] = useState<RoomAPI | undefined>({
+        id: '6d612b41-3440-4f51-8e86-b88c6d60d83f',
+        roomName: 'Room 1',
+        members: ['f8823e0f-28aa-4471-9e1b-dcb400091efd'],
+    });
     const [messageStack, updateMessageStack] = useState<MessageAPI[]>([]);
     const [roomStack, updateRoomStack] = useState<RoomAPI[]>([]); // TODO: Fetch roomstack from backend
 
@@ -85,8 +85,8 @@ export default function Home() {
 
             if (!currentRoom || currentRoom.id !== roomId) {
                 console.log('Room mismatch');
-                return
-            }; // TODO: Notify user about new message
+                return;
+            } // TODO: Notify user about new message
 
             updateMessageStack(prev => [...prev, message]);
         }

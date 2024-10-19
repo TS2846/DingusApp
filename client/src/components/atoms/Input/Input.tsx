@@ -1,6 +1,7 @@
 import {twMerge} from 'tailwind-merge';
+import {InputProps} from 'react-html-props';
 
-export default function Input({className = '', ...restProps}) {
+export default function Input({className = '', ...restProps}: InputProps) {
     return (
         <input
             className={twMerge(

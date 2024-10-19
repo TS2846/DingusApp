@@ -1,16 +1,15 @@
 import {twMerge} from 'tailwind-merge';
+import {ButtonProps} from 'react-html-props';
 
-type ButtonProps = {
+interface ButtonWithLabelProps extends ButtonProps {
     label: string;
-    className: string;
-    [x: string]: any;
-};
+}
 
 export default function Button({
     label,
     className = '',
     ...restProps
-}: ButtonProps) {
+}: ButtonWithLabelProps) {
     return (
         <button
             className={twMerge(
