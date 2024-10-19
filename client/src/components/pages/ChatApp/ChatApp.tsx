@@ -1,5 +1,3 @@
-'use client';
-
 import React, {useState, useEffect} from 'react';
 import {io} from 'socket.io-client';
 import {v4 as uuidv4} from 'uuid';
@@ -11,9 +9,9 @@ import RoomList from '@/components/organisms/RoomList';
 import UserContext from '@/contexts/UserContext';
 import RoomContext from '@/contexts/RoomContext';
 import {MessageAPI, RoomAPI} from '@/interfaces/apiInterfaces';
+import config from '@/config';
 
-const URL = 'http://localhost:3001';
-export const socket = io(URL, {
+const socket = io(config.SERVER_URI, {
     autoConnect: false,
 });
 
@@ -23,21 +21,17 @@ const user = {
     displayName: 'Deepta',
 };
 
-export default function Home() {
+export default function ChatApp() {
     const [messageInput, setMessageInput] = useState<string>('');
-    const [currentRoom, setCurrentRoom] = useState<RoomAPI | undefined>(
-        {
-            id:'6d612b41-3440-4f51-8e86-b88c6d60d83f',
-            roomName:'Room 1',
-            members:['f8823e0f-28aa-4471-9e1b-dcb400091efd']
-        }
-    );
+    const [currentRoom, setCurrentRoom] = useState<RoomAPI | undefined>({
+        id: '6d612b41-3440-4f51-8e86-b88c6d60d83f',
+        roomName: 'Room 1',
+        members: ['f8823e0f-28aa-4471-9e1b-dcb400091efd'],
+    });
     const [messageStack, updateMessageStack] = useState<MessageAPI[]>([]);
     const [roomStack, updateRoomStack] = useState<RoomAPI[]>([]); // TODO: Fetch roomstack from backend
 
-    const onMessageSubmit = (
-        e: React.MouseEvent<HTMLButtonElement, React.MouseEvent>,
-    ) => {
+    const onMessageSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
         if (!socket.connected) return; // TODO: Prompt use to wait for a connection
@@ -85,8 +79,8 @@ export default function Home() {
 
             if (!currentRoom || currentRoom.id !== roomId) {
                 console.log('Room mismatch');
-                return
-            }; // TODO: Notify user about new message
+                return;
+            } // TODO: Notify user about new message
 
             updateMessageStack(prev => [...prev, message]);
         }
