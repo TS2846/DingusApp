@@ -1,7 +1,6 @@
 import {useMutation, UseMutationOptions} from '@tanstack/react-query';
 import axios from 'axios';
-
-const REST_URI = 'http://localhost:3001';
+import config from '@/config';
 
 type LoginPayload = {
     username: string;
@@ -11,7 +10,10 @@ type LoginPayload = {
 type UserPayload = {id: string; username: string; name: string};
 
 const postLogin = (payload: LoginPayload) => {
-    return axios.post<LoginPayload, UserPayload>(REST_URI + '/login', payload);
+    return axios.post<LoginPayload, UserPayload>(
+        config.SERVER_URI + '/login',
+        payload,
+    );
 };
 
 export function useLogin({

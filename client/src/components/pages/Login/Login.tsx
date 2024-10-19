@@ -1,43 +1,16 @@
-'use client';
-
-import Link from 'next/link';
 import {useState} from 'react';
-import {useRouter} from 'next/navigation';
-import {cookies} from 'next/headers';
 
-import {useLogin} from '@/hooks/dataHooks';
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
 
-export default function Login() {
+type LoginProps = {
+    setRequest: React.Dispatch<React.SetStateAction<string>>;
+    setAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+export default function Login({setRequest, setAuthenticated}: LoginProps) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const router = useRouter();
-    const cookiesStore = cookies();
-    const {
-        mutate: authenticateUser,
-        isError,
-        isSuccess,
-        error,
-    } = useLogin({
-        onSuccess: data => {
-            const ten_mins = Date.now() + 10 * 60 * 1000;
-            cookiesStore.set('id', data.id, {
-                expires: ten_mins,
-            });
-            cookiesStore.set('username', data.username, {
-                expires: ten_mins,
-            });
-            cookiesStore.set('name', data.name, {
-                expires: ten_mins,
-            });
-
-            router.push('/');
-        },
-    });
-    const submitLogin = () => {
-        authenticateUser({username, password});
-    };
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center gap-2">
@@ -60,25 +33,31 @@ export default function Login() {
                     label="Login"
                     className="px-4"
                     type="button"
-                    onClick={submitLogin}
+                    onClick={e => {
+                        e.preventDefault();
+                        setAuthenticated(true);
+                    }}
                 />
             </div>
             <div>
                 <p>
                     Don&apos;t have an account?
-                    <Link
+                    <span
                         className="p-2 mx-1 rounded-md cursor-pointer hover:bg-blue-400
-                     hover:text-white transition-all ease-in"
-                        href={'/signup'}
+                                    hover:text-white transition-all ease-in"
+                        onClick={e => {
+                            e.preventDefault();
+                            setRequest('signup');
+                        }}
                     >
                         Sign up
-                    </Link>
+                    </span>
                 </p>
-                <div>
+                {/* <div>
                     Status:{' '}
                     {isError ? 'Invalid Credentials' + error.message : ''}{' '}
                     {isSuccess ? 'Success!' : ''}
-                </div>
+                </div> */}
             </div>
         </div>
     );

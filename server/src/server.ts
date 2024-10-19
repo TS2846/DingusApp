@@ -4,6 +4,7 @@ import {Server} from 'socket.io';
 import {join} from 'path';
 import parser from 'body-parser';
 import cors from 'cors';
+import config from './config';
 
 import {
     authenticateUser,
@@ -20,9 +21,6 @@ import {
     UserDoesNotExistError,
 } from './errors/dbErrors';
 
-const ORIGIN = 3000;
-const PORT = 3001;
-
 const app = express();
 
 const jsonParser = parser.json({strict: true});
@@ -31,7 +29,7 @@ app.use(jsonParser);
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:' + ORIGIN,
+        origin: config.CLIENT_URI,
         methods: ['GET', 'POST'],
     },
 });
@@ -152,6 +150,6 @@ app.get('/rooms/:user_id', (req, res) => {
     res.json(rooms);
 });
 
-server.listen(PORT, () => {
-    console.log('server running at http://localhost:' + PORT);
+server.listen(config.SERVER_PORT, () => {
+    console.log('server running at ' + config.SERVER_URI);
 });

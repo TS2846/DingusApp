@@ -35,7 +35,7 @@ export default function RoomList({
                 ))}
             </div>
             <div
-                className="absolute bottom-5 right-5 w-14 h-14 
+                className="group absolute bottom-5 right-5 w-14 h-14 
                     flex flex-col items-center justify-center 
                     rounded-full text-white bg-black hover:text-2xl 
                     transition-all ease-in hover:cursor-pointer"
@@ -43,7 +43,9 @@ export default function RoomList({
             >
                 <FaPlus
                     className={
-                        roomStack.length ? 'collapse absolute' : 'absolute animate-ping'
+                        roomStack.length
+                            ? 'collapse absolute'
+                            : 'absolute animate-ping group-hover:animate-none'
                     }
                 />
                 <FaPlus />

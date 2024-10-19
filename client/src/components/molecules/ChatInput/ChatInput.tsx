@@ -4,9 +4,7 @@ import Input from '@/components/atoms/Input';
 type ChatInputProps = {
     messageInput: string;
     setMessageInput: React.Dispatch<React.SetStateAction<string>>;
-    onMessageSubmit: (
-        e: React.MouseEvent<HTMLButtonElement, React.MouseEvent>,
-    ) => void;
+    onMessageSubmit: React.MouseEventHandler<HTMLButtonElement>;
 };
 
 export default function ChatInput({
