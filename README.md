@@ -16,16 +16,16 @@ By default the front-end of the app is served at `http://localhost:3000`
 
 ## Technology Stack
 
-![Vite](https://ziadoua.github.io/m3-Markdown-Badges/badges/ViteJS/vitejs1.svg) ![React](https://ziadoua.github.io/m3-Markdown-Badges/badges/React/react1.svg) ![TypeScript](https://ziadoua.github.io/m3-Markdown-Badges/badges/TypeScript/typescript1.svg) ![Tailwind](https://ziadoua.github.io/m3-Markdown-Badges/badges/TailwindCSS/tailwindcss3.svg)
-![Express](https://ziadoua.github.io/m3-Markdown-Badges/badges/Express/express3.svg) ![Socket.io](https://ziadoua.github.io/m3-Markdown-Badges/badges/SocketIO/socketio3.svg) ![SQLite](https://ziadoua.github.io/m3-Markdown-Badges/badges/SQLite/sqlite1.svg) ![JWT](https://ziadoua.github.io/m3-Markdown-Badges/badges/JWT/jwt3.svg)
+![Vite](https://ziadoua.github.io/m3-Markdown-Badges/badges/ViteJS/vitejs1.svg) ![React](https://ziadoua.github.io/m3-Markdown-Badges/badges/React/react1.svg) ![TypeScript](https://ziadoua.github.io/m3-Markdown-Badges/badges/TypeScript/typescript1.svg)
+
+![Express](https://ziadoua.github.io/m3-Markdown-Badges/badges/Express/express3.svg) ![Socket.io](https://ziadoua.github.io/m3-Markdown-Badges/badges/SocketIO/socketio3.svg) ![SQLite](https://ziadoua.github.io/m3-Markdown-Badges/badges/SQLite/sqlite1.svg)
 
 ### Other Dependencies
 
--   [uuid](https://www.npmjs.com/package/uuid)
--   [@tanstack/react-query](https://www.npmjs.com/package/@tanstack/react-query)
--   [axios](https://www.npmjs.com/package/axios)
+-   [react-toastify](https://www.npmjs.com/package/react-toastify)
 -   [react-icons](https://www.npmjs.com/package/react-icons)
 -   [react-html-props](https://www.npmjs.com/package/react-html-props)
+-   [uuid](https://www.npmjs.com/package/uuid)
 -   [nodemon](https://www.npmjs.com/package/nodemon)
 -   [bcrypt](https://www.npmjs.com/package/bcrypt)
 -   [better-sqlite3](https://www.npmjs.com/package/better-sqlite3)

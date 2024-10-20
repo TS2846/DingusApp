@@ -1,17 +1,37 @@
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
+import {useRoomContext} from '@/contexts/RoomContext';
+import {useUserContext} from '@/contexts/UserContext';
+import {socket} from '@/socket';
 
 type ChatInputProps = {
     messageInput: string;
     setMessageInput: React.Dispatch<React.SetStateAction<string>>;
-    onMessageSubmit: React.MouseEventHandler<HTMLButtonElement>;
 };
 
 export default function ChatInput({
     messageInput,
     setMessageInput,
-    onMessageSubmit,
 }: ChatInputProps) {
+    const user = useUserContext();
+    const room = useRoomContext();
+
+    const onMessageSubmit = (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    ) => {
+        e.preventDefault();
+        if (!messageInput) return;
+
+        socket.emit(
+            'message:submit',
+            user?.id,
+            room?.id,
+            Date.now(),
+            messageInput,
+        );
+        setMessageInput('');
+    };
+
     return (
         <form
             className="w-full flex flex-col gap-4 items-start"

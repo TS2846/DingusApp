@@ -2,22 +2,23 @@ import {FaPlus} from 'react-icons/fa';
 
 import Room from '@/components/molecules/Room';
 import {RoomAPI} from '@/interfaces/apiInterfaces';
+import {useUserContext} from '@/contexts/UserContext';
+import {socket} from '@/socket';
 
 type RoomListProps = {
     roomStack: RoomAPI[];
-    onRoomClick: (room: RoomAPI) => void;
-    onCreateRoom: (e: React.MouseEvent<HTMLDivElement>) => void;
 };
 
-export default function RoomList({
-    roomStack,
-    onRoomClick,
-    onCreateRoom,
-}: RoomListProps) {
+export default function RoomList({roomStack}: RoomListProps) {
+    const user = useUserContext()!;
+    const onCreateRoom = () => {
+        socket.emit('room:create', user.id, `Room ${roomStack.length + 1}`);
+    };
+
     return (
         <div
             id="room-box"
-            className="w-full h-full border border-black rounded-md overflow-hidden justify-center p-2 relative"
+            className="w-full h-full border border-black rounded-md overflow-y-scroll justify-center p-2 relative"
         >
             <div className="text-xl font-bold flex flex-col items-center justify-center p-2">
                 Your Rooms
@@ -31,7 +32,7 @@ export default function RoomList({
                     [&::-webkit-scrollbar-thumb]:bg-gray-300"
             >
                 {roomStack.map((item, index) => (
-                    <Room key={index} room={item} onRoomClick={onRoomClick} />
+                    <Room key={index} room={item} />
                 ))}
             </div>
             <div

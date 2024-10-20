@@ -1,5 +1,4 @@
 import React, {useState, useEffect} from 'react';
-import {io} from 'socket.io-client';
 import {FaPlus} from 'react-icons/fa';
 
 import ChatWindow from '@/components/organisms/ChatWindow';
@@ -7,12 +6,8 @@ import ChatInput from '@/components/molecules/ChatInput';
 import RoomList from '@/components/organisms/RoomList';
 import RoomContext from '@/contexts/RoomContext';
 import {MessageAPI, RoomAPI} from '@/interfaces/apiInterfaces';
-import config from '@/config';
 import {useUserContext} from '@/contexts/UserContext';
-
-const socket = io(config.SERVER_URI, {
-    autoConnect: false,
-});
+import {socket} from '@/socket';
 
 export default function ChatApp() {
     const user = useUserContext()!;
@@ -20,75 +15,65 @@ export default function ChatApp() {
     const [messageInput, setMessageInput] = useState<string>('');
     const [currentRoom, setCurrentRoom] = useState<RoomAPI | null>(null);
     const [messageStack, updateMessageStack] = useState<MessageAPI[]>([]);
-    const [roomStack, updateRoomStack] = useState<RoomAPI[]>([]); // TODO: Fetch roomstack from backend
-
-    const onMessageSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
-
-        if (!socket.connected) return; // TODO: Prompt use to wait for a connection
-
-        if (!messageInput) return;
-
-        if (!currentRoom) return; // TODO: Prompt user to join a room
-        socket.emit(
-            'message:send',
-            user.id,
-            messageInput,
-            currentRoom.id,
-            Date.now(),
-        );
-        setMessageInput('');
-    };
-
-    const onRoomClick = (room: RoomAPI) => {
-        if (room.id === currentRoom?.id) return;
-
-        if (!socket.connected) return; // TODO: Notify the of the connection problem
-
-        socket.emit('room:join', user.id, room.id);
-        // TODO: get roomstack from api
-    };
-
-    const onCreateRoom = (e: React.MouseEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        if (!socket.connected) return; // TODO: Notify user about connection problem
-
-        const newRoom = {
-            id: 'id',
-            roomName: `Room ${roomStack.length + 1}`,
-            members: [user.id],
-        };
-        updateRoomStack(prev => [newRoom, ...prev]);
-        socket.emit('room:join', user.id, newRoom.id);
-    };
+    const [roomStack, updateRoomStack] = useState<RoomAPI[]>([]);
 
     useEffect(() => {
-        socket.connect();
+        socket.emit('user:get_rooms_req', user.id);
 
-        function onNewMessage(message: MessageAPI) {
-            const roomId = message.roomId;
+        const onGetRoomsResponse = (rooms: RoomAPI[]) => {
+            console.log(rooms);
+            updateRoomStack(rooms);
+        };
+
+        const clean_up = () => {
+            socket.off('user:get_rooms_res', onGetRoomsResponse);
+        };
+
+        socket.on('user:get_rooms_res', onGetRoomsResponse);
+
+        return clean_up;
+    }, [user]);
+
+    useEffect(() => {
+        const onRoomCreated = (room: RoomAPI) => {
+            console.log(room);
+            updateRoomStack(prev => [room, ...prev]);
+            updateMessageStack([]);
+            setCurrentRoom(room);
+            // TODO: Show success Toast
+        };
+
+        const onRoomJoined = (room: RoomAPI, messages: MessageAPI[]) => {
+            console.log(messages);
+            setCurrentRoom(room);
+            updateMessageStack(messages);
+            // TODO: Show success toast
+        };
+
+        const onMessageSubmitted = (message: MessageAPI) => {
+            console.log(message);
+            const roomId = message.room_id;
 
             if (!currentRoom || currentRoom.id !== roomId) {
                 console.log('Room mismatch');
                 return;
-            } // TODO: Notify user about new message
+            } // TODO: Show new message toast
 
             updateMessageStack(prev => [...prev, message]);
-        }
-
-        function onRoomChange(room: RoomAPI) {
-            setCurrentRoom(room);
-            // TODO: Notify user of successfully joining a room
-        }
-        socket.on('message:new', onNewMessage);
-        socket.on('room:change', onRoomChange);
-
-        return () => {
-            socket.off('message:new', onNewMessage);
-            socket.off('room:change', onRoomChange);
-            socket.disconnect();
         };
-    }, [currentRoom]);
+
+        const clean_up = () => {
+            socket.off('room:created', onRoomCreated);
+            socket.off('room:joined', onRoomJoined);
+            socket.off('message:submitted', onMessageSubmitted);
+        };
+
+        socket.on('room:created', onRoomCreated);
+        socket.on('room:joined', onRoomJoined);
+        socket.on('message:submitted', onMessageSubmitted);
+
+        return clean_up;
+    }, [currentRoom, user]);
 
     const renderChatWindow = () => {
         if (!roomStack.length) {
@@ -118,7 +103,6 @@ export default function ChatApp() {
                 <ChatInput
                     messageInput={messageInput}
                     setMessageInput={setMessageInput}
-                    onMessageSubmit={onMessageSubmit}
                 />
             );
 
@@ -128,11 +112,7 @@ export default function ChatApp() {
     return (
         <RoomContext.Provider value={currentRoom}>
             <div className="w-80 min-w-80 border-t border-l flex flex-col items-center justify-center">
-                <RoomList
-                    roomStack={roomStack}
-                    onRoomClick={onRoomClick}
-                    onCreateRoom={onCreateRoom}
-                />
+                <RoomList roomStack={roomStack} />
             </div>
             <div className="grow flex flex-col relative">
                 <div

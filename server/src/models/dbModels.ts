@@ -7,7 +7,7 @@ export interface User {
 
 export interface Message {
     id: number;
-    user_id: string;
+    sender_id: string;
     room_id: string;
     body: string;
     sent_at: Date;
@@ -19,7 +19,6 @@ export interface Room {
 }
 
 export interface UserRooms {
-    id: number;
     user_id: string;
     room_id: string;
 }

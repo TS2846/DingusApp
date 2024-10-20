@@ -2,38 +2,22 @@ import {useState} from 'react';
 
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
-import {UserAPI} from '@/interfaces/apiInterfaces';
-import {useSignup} from '@/hooks/dataHooks';
+import {socket} from '@/socket';
 
 type SignUpProps = {
     setRequest: React.Dispatch<React.SetStateAction<string>>;
-    setAuthenticatedUser: React.Dispatch<React.SetStateAction<UserAPI | null>>;
 };
 
-export default function SignUp({
-    setRequest,
-    setAuthenticatedUser,
-}: SignUpProps) {
+export default function SignUp({setRequest}: SignUpProps) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
-
-    const {
-        mutate: signupUser,
-        isError,
-        isSuccess,
-        error,
-    } = useSignup({
-        onSuccess: data => {
-            setAuthenticatedUser(data);
-        },
-    });
 
     const onSignupSubmit = (
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     ) => {
         e.preventDefault();
-        signupUser({name, username, password});
+        socket.emit('user:register', name, username, password);
     };
 
     return (
@@ -78,11 +62,6 @@ export default function SignUp({
                         Login
                     </span>
                 </p>
-                <div>
-                    Status:{' '}
-                    {isError ? 'Invalid Credentials' + error.message : ''}{' '}
-                    {isSuccess ? 'Success!' : ''}
-                </div>
             </div>
         </form>
     );
