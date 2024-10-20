@@ -159,14 +159,16 @@ export function insertUserInRoom(
 
 export function getMessages(db: Database, room_id: string) {
     const messages = db
-        .prepare<string[], Message>(`SELECT * FROM messages WHERE room_id = ?`)
+        .prepare<string[], Message>(
+            'SELECT * FROM messages WHERE room_id = ? ORDER BY sent_at ASC',
+        )
         .all(room_id);
     return messages;
 }
 
 export function getRoom(db: Database, room_id: string) {
     const room = db
-        .prepare<string[], Room>(`SELECT * FROM rooms WHERE id = ?`)
+        .prepare<string[], Room>('SELECT * FROM rooms WHERE id = ?')
         .get(room_id);
     return room;
 }
@@ -174,7 +176,8 @@ export function getRoom(db: Database, room_id: string) {
 export function getRoomMembers(db: Database, room_id: string) {
     const members = db
         .prepare<string[], UserAPI>(
-            `SELECT users.id, users.name, users.username FROM users INNER JOIN users_rooms ON users.id = users_rooms.user_id WHERE room_id = ?`,
+            `SELECT users.id, users.name, users.username FROM users 
+            INNER JOIN users_rooms ON users.id = users_rooms.user_id WHERE room_id = ?`,
         )
         .all(room_id);
 
@@ -184,7 +187,9 @@ export function getRoomMembers(db: Database, room_id: string) {
 export function getUserRooms(db: Database, user_id: string) {
     const rooms = db
         .prepare<string[], Room>(
-            'SELECT rooms.id, rooms.name FROM rooms INNER JOIN users_rooms ON rooms.id = users_rooms.room_id WHERE users_rooms.user_id = ?',
+            `SELECT rooms.id, rooms.name FROM rooms 
+            INNER JOIN users_rooms ON rooms.id = users_rooms.room_id 
+            WHERE users_rooms.user_id = ?`,
         )
         .all(user_id);
 
