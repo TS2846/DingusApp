@@ -2,7 +2,7 @@ import {createContext, useContext} from 'react';
 
 import {RoomAPI} from '@/interfaces/apiInterfaces';
 
-const RoomContext = createContext<RoomAPI | undefined>(undefined);
+const RoomContext = createContext<RoomAPI | null>(null);
 
 export default RoomContext;
 

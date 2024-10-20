@@ -5,6 +5,7 @@ import {join} from 'path';
 import parser from 'body-parser';
 import cors from 'cors';
 import config from './config';
+import {v4 as uuidv4} from 'uuid';
 
 import {
     authenticateUser,
@@ -78,17 +79,12 @@ io.on('connection', socket => {
 app.options('/signup', cors());
 app.post('/signup', (req, res) => {
     try {
-        if (
-            !req.body.id ||
-            !req.body.username ||
-            !req.body.password ||
-            !req.body.name
-        )
+        if (!req.body.username || !req.body.password || !req.body.name)
             throw new InvalidParametersError(
                 'missing parameters. Required: {id, username, password, name}',
             );
 
-        const user = insertUser(db, req.body);
+        const user = insertUser(db, {id: uuidv4(), ...req.body});
         res.status(200).json(user);
     } catch (error) {
         let err_msg = 'server error...';

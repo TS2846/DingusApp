@@ -41,13 +41,14 @@ export default function RoomList({
                     transition-all ease-in hover:cursor-pointer"
                 onClick={onCreateRoom}
             >
-                <FaPlus
+                <span
                     className={
-                        roomStack.length
-                            ? 'collapse absolute'
-                            : 'absolute animate-ping group-hover:animate-none'
+                        'p-3 rounded-full bg-white ' +
+                        (roomStack.length
+                            ? 'collapse absolute bg-none'
+                            : 'absolute animate-ping group-hover:collapse')
                     }
-                />
+                ></span>
                 <FaPlus />
             </div>
         </div>

@@ -8,12 +8,12 @@ type MessageProps = {
 };
 
 export default function Message({message}: MessageProps) {
-    const user = useUserContext();
+    const user = useUserContext()!;
     return (
         <div
             className={
                 'flex flex-col py-2 bg-gray-50 px-5 border-b border-gray-400 ' +
-                (user?.id === message.senderId ? 'items-end' : 'items-start')
+                (user.id === message.senderId ? 'items-end' : 'items-start')
             }
         >
             <span className="text-sm flex flex-row items-center gap-1">
