@@ -6,13 +6,23 @@ Demo messaging app built with express and socket io
 
 To run the app with full functionality you must run both the client and server components:
 
-1.  Create a `.env` file in the root of project directory to store all environment variables. A template is provided below.
-2.  Install **server** dependencies by running the command `npm install` while in the `server` directory.
-3.  Install **client** dependencies by running the command `npm install` while in the `client` directory.
-4.  Start the **server** component by running the command `npm run dev` while in the `server` directory.
-5.  In another terminal window, start the **client** component by running the command `npm run dev` while in the `client` directory.
+1.  Install **server** dependencies by running the command `npm install` while in the `server` directory.
+2.  Install **client** dependencies by running the command `npm install` while in the `client` directory.
+3.  Start the **server** component by running the command `npm run dev` while in the `server` directory.
+4.  In another terminal window, start the **client** component by running the command `npm run dev` while in the `client` directory.
 
-By default the front-end of the app is served at `http://localhost:3000`
+By default the front-end of the app is served at `http://localhost:3000`. If you want to change the default ports, create a `.env` file in the root directory.
+
+### Sample `.env` Template
+
+```
+# create the .env file in the project root directory
+
+APP_CLIENT_PORT = 3000      # port where the client runs
+APP_SERVER_PORT = 3001      # port where the server runs
+```
+
+Since the `client` and `server` needs to communicate with each other you
 
 ## Technology Stack
 

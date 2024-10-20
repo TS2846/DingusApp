@@ -3,11 +3,7 @@ import {hashSync, genSaltSync, compareSync} from 'bcrypt';
 import {existsSync, mkdirSync, writeFileSync} from 'fs';
 import {dirname} from 'path';
 
-import {
-    IncorrectPasswordError,
-    UserAlreadyExistsError,
-    UserDoesNotExistError,
-} from '../errors/dbErrors';
+import * as DBErrors from '../errors/dbErrors';
 import {User, Message, Room} from '../models/dbModels';
 import {LoginPayload, SignupPayload} from '../types/payload';
 import {MessageAPI, UserAPI} from '../interfaces/apiInterfaces';
@@ -111,10 +107,10 @@ export function authenticateUser(db: Database, user: LoginPayload) {
         .prepare<string[], User>(`SELECT * FROM users WHERE username = ?`)
         .get(user.username);
 
-    if (!row) throw new UserDoesNotExistError('user does not exist');
+    if (!row) throw new DBErrors.UserDoesNotExistError('user does not exist');
 
     if (!compareSync(user.password, row._password))
-        throw new IncorrectPasswordError('password is invalid');
+        throw new DBErrors.IncorrectPasswordError('password is invalid');
 
     return {id: row.id, username: row.username, name: row.name};
 }
@@ -123,7 +119,7 @@ export function authenticateUser(db: Database, user: LoginPayload) {
 
 export function insertUser(db: Database, user: SignupPayload) {
     if (userExists(db, user.id, user.username))
-        throw new UserAlreadyExistsError('username already exists');
+        throw new DBErrors.UserAlreadyExistsError('username already exists');
 
     const stmt = db.prepare(
         `INSERT INTO users (id, username, _password, name) VALUES (?, ?, ?, ?)`,

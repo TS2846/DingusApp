@@ -8,12 +8,7 @@ import config from './config';
 import {v4 as uuidv4} from 'uuid';
 
 import * as helpers from './helpers/dbHelpers';
-import {
-    IncorrectPasswordError,
-    InvalidParametersError,
-    UserAlreadyExistsError,
-    UserDoesNotExistError,
-} from './errors/dbErrors';
+import * as DBErrors from './errors/dbErrors';
 import {RoomAPI, UserAPI} from './interfaces/apiInterfaces';
 
 const app = express();
@@ -46,9 +41,9 @@ io.on('connection', socket => {
             let err_msg = 'Server error!';
 
             if (
-                error instanceof UserDoesNotExistError ||
-                error instanceof IncorrectPasswordError ||
-                error instanceof InvalidParametersError
+                error instanceof DBErrors.UserDoesNotExistError ||
+                error instanceof DBErrors.IncorrectPasswordError ||
+                error instanceof DBErrors.InvalidParametersError
             ) {
                 io.to(socket.id).emit(
                     'user:authentication_error',
@@ -78,8 +73,8 @@ io.on('connection', socket => {
                 let err_msg = 'Server error!';
 
                 if (
-                    error instanceof UserAlreadyExistsError ||
-                    error instanceof InvalidParametersError
+                    error instanceof DBErrors.UserAlreadyExistsError ||
+                    error instanceof DBErrors.InvalidParametersError
                 ) {
                     io.to(socket.id).emit(
                         'user:registration_error',
