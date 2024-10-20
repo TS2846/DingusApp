@@ -1,13 +1,21 @@
 import {useRoomContext} from '@/contexts/RoomContext';
+import {useUserContext} from '@/contexts/UserContext';
 import {RoomAPI} from '@/interfaces/apiInterfaces';
+import {socket} from '@/socket';
 
 type RoomProps = {
     room: RoomAPI;
-    onRoomClick: (room: RoomAPI) => void;
 };
 
-export default function Room({room, onRoomClick}: RoomProps) {
+export default function Room({room}: RoomProps) {
     const currentRoom = useRoomContext();
+    const user = useUserContext()!;
+
+    const onRoomJoin = (room: RoomAPI) => {
+        if (room.id === currentRoom?.id) return;
+
+        socket.emit('room:join', user.id, room.id);
+    };
 
     const isActive = room.id === currentRoom?.id;
     const colors = isActive
@@ -20,9 +28,9 @@ export default function Room({room, onRoomClick}: RoomProps) {
                 flex-col items-start justify-center 
                 hover:cursor-pointer
                 ${colors}`}
-            onClick={() => onRoomClick(room)}
+            onClick={() => onRoomJoin(room)}
         >
-            {room.roomName}
+            {room.name}
         </div>
     );
 }

@@ -2,34 +2,21 @@ import {useState} from 'react';
 
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
-import {useLogin} from '@/hooks/dataHooks';
-import {UserAPI} from '@/interfaces/apiInterfaces';
+import {socket} from '@/socket';
 
 type LoginProps = {
     setRequest: React.Dispatch<React.SetStateAction<string>>;
-    setAuthenticatedUser: React.Dispatch<React.SetStateAction<UserAPI | null>>;
 };
 
-export default function Login({setRequest, setAuthenticatedUser}: LoginProps) {
+export default function Login({setRequest}: LoginProps) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
-    const {
-        mutate: authenticateUser,
-        isError,
-        isSuccess,
-        error,
-    } = useLogin({
-        onSuccess: data => {
-            setAuthenticatedUser(data);
-        },
-    });
 
     const onLoginSubmit = (
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     ) => {
         e.preventDefault();
-        authenticateUser({username, password});
+        socket.emit('user:authenticate', username, password);
     };
 
     return (
@@ -70,11 +57,6 @@ export default function Login({setRequest, setAuthenticatedUser}: LoginProps) {
                         Sign up
                     </span>
                 </p>
-                <div>
-                    Status:{' '}
-                    {isError ? 'Invalid Credentials' + error.message : ''}{' '}
-                    {isSuccess ? 'Success!' : ''}
-                </div>
             </div>
         </form>
     );
