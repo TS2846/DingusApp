@@ -15,5 +15,5 @@ export interface RoomAPI {
 export interface UserAPI {
     id: string;
     username: string;
-    displayName: string;
+    name: string;
 }

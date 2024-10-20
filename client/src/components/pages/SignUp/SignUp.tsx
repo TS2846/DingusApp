@@ -2,19 +2,42 @@ import {useState} from 'react';
 
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
+import {UserAPI} from '@/interfaces/apiInterfaces';
+import {useSignup} from '@/hooks/dataHooks';
 
 type SignUpProps = {
     setRequest: React.Dispatch<React.SetStateAction<string>>;
-    setAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+    setAuthenticatedUser: React.Dispatch<React.SetStateAction<UserAPI | null>>;
 };
 
-export default function SignUp({setRequest, setAuthenticated}: SignUpProps) {
+export default function SignUp({
+    setRequest,
+    setAuthenticatedUser,
+}: SignUpProps) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
 
+    const {
+        mutate: signupUser,
+        isError,
+        isSuccess,
+        error,
+    } = useSignup({
+        onSuccess: data => {
+            setAuthenticatedUser(data);
+        },
+    });
+
+    const onSignupSubmit = (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    ) => {
+        e.preventDefault();
+        signupUser({name, username, password});
+    };
+
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+        <form className="w-full h-full flex flex-col items-center justify-center gap-2">
             <Input
                 type="text"
                 placeholder="Name"
@@ -38,10 +61,7 @@ export default function SignUp({setRequest, setAuthenticated}: SignUpProps) {
                     type="submit"
                     label="Sign Up"
                     className="px-4"
-                    onClick={e => {
-                        e.preventDefault();
-                        setAuthenticated(true);
-                    }}
+                    onClick={onSignupSubmit}
                 />
             </div>
             <div>
@@ -58,7 +78,12 @@ export default function SignUp({setRequest, setAuthenticated}: SignUpProps) {
                         Login
                     </span>
                 </p>
+                <div>
+                    Status:{' '}
+                    {isError ? 'Invalid Credentials' + error.message : ''}{' '}
+                    {isSuccess ? 'Success!' : ''}
+                </div>
             </div>
-        </div>
+        </form>
     );
 }

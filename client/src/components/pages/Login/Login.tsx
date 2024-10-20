@@ -2,18 +2,38 @@ import {useState} from 'react';
 
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
+import {useLogin} from '@/hooks/dataHooks';
+import {UserAPI} from '@/interfaces/apiInterfaces';
 
 type LoginProps = {
     setRequest: React.Dispatch<React.SetStateAction<string>>;
-    setAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+    setAuthenticatedUser: React.Dispatch<React.SetStateAction<UserAPI | null>>;
 };
 
-export default function Login({setRequest, setAuthenticated}: LoginProps) {
+export default function Login({setRequest, setAuthenticatedUser}: LoginProps) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
+    const {
+        mutate: authenticateUser,
+        isError,
+        isSuccess,
+        error,
+    } = useLogin({
+        onSuccess: data => {
+            setAuthenticatedUser(data);
+        },
+    });
+
+    const onLoginSubmit = (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    ) => {
+        e.preventDefault();
+        authenticateUser({username, password});
+    };
+
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+        <form className="w-full h-full flex flex-col items-center justify-center gap-2">
             <Input
                 id="username"
                 type="text"
@@ -30,13 +50,10 @@ export default function Login({setRequest, setAuthenticated}: LoginProps) {
             />
             <div className="flex flex-row gap-2">
                 <Button
+                    type="submit"
                     label="Login"
                     className="px-4"
-                    type="button"
-                    onClick={e => {
-                        e.preventDefault();
-                        setAuthenticated(true);
-                    }}
+                    onClick={onLoginSubmit}
                 />
             </div>
             <div>
@@ -53,12 +70,12 @@ export default function Login({setRequest, setAuthenticated}: LoginProps) {
                         Sign up
                     </span>
                 </p>
-                {/* <div>
+                <div>
                     Status:{' '}
                     {isError ? 'Invalid Credentials' + error.message : ''}{' '}
                     {isSuccess ? 'Success!' : ''}
-                </div> */}
+                </div>
             </div>
-        </div>
+        </form>
     );
 }

@@ -24,6 +24,7 @@
         "@types/body-parser": "^1.19.5",
         "@types/express": "^5.0.0",
         "@types/node": "^22.7.6",
+        "@types/uuid": "^10.0.0",
         "dotenv": "^16.4.5",
         "nodemon": "^3.1.7",
         "ts-node": "^10.9.2",
@@ -35,6 +36,7 @@
         "body-parser": "^1.20.3",
         "cors": "^2.8.5",
         "express": "^4.21.1",
-        "socket.io": "^4.8.0"
+        "socket.io": "^4.8.0",
+        "uuid": "^10.0.0"
     }
 }

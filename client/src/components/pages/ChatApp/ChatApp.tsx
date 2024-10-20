@@ -1,33 +1,24 @@
 import React, {useState, useEffect} from 'react';
 import {io} from 'socket.io-client';
-import {v4 as uuidv4} from 'uuid';
 import {FaPlus} from 'react-icons/fa';
 
 import ChatWindow from '@/components/organisms/ChatWindow';
 import ChatInput from '@/components/molecules/ChatInput';
 import RoomList from '@/components/organisms/RoomList';
-import UserContext from '@/contexts/UserContext';
 import RoomContext from '@/contexts/RoomContext';
 import {MessageAPI, RoomAPI} from '@/interfaces/apiInterfaces';
 import config from '@/config';
+import {useUserContext} from '@/contexts/UserContext';
 
 const socket = io(config.SERVER_URI, {
     autoConnect: false,
 });
 
-const user = {
-    id: 'f8823e0f-28aa-4471-9e1b-dcb400091efd',
-    username: 'pdad12',
-    displayName: 'Deepta',
-};
-
 export default function ChatApp() {
+    const user = useUserContext()!;
+
     const [messageInput, setMessageInput] = useState<string>('');
-    const [currentRoom, setCurrentRoom] = useState<RoomAPI | undefined>({
-        id: '6d612b41-3440-4f51-8e86-b88c6d60d83f',
-        roomName: 'Room 1',
-        members: ['f8823e0f-28aa-4471-9e1b-dcb400091efd'],
-    });
+    const [currentRoom, setCurrentRoom] = useState<RoomAPI | null>(null);
     const [messageStack, updateMessageStack] = useState<MessageAPI[]>([]);
     const [roomStack, updateRoomStack] = useState<RoomAPI[]>([]); // TODO: Fetch roomstack from backend
 
@@ -63,7 +54,7 @@ export default function ChatApp() {
         if (!socket.connected) return; // TODO: Notify user about connection problem
 
         const newRoom = {
-            id: uuidv4(),
+            id: 'id',
             roomName: `Room ${roomStack.length + 1}`,
             members: [user.id],
         };
@@ -99,47 +90,62 @@ export default function ChatApp() {
         };
     }, [currentRoom]);
 
-    return (
-        <UserContext.Provider value={user}>
-            <RoomContext.Provider value={currentRoom}>
-                <div className="w-80 min-w-80 border-t border-l flex flex-col items-center justify-center">
-                    <RoomList
-                        roomStack={roomStack}
-                        onRoomClick={onRoomClick}
-                        onCreateRoom={onCreateRoom}
-                    />
-                </div>
-                <div className="grow flex flex-col relative">
-                    <div
-                        className="grow max-h-full flex flex-col items-center justify-center border-r 
-                                    border-b border-t border-black rounded-md"
-                    >
-                        {currentRoom ? (
-                            <ChatWindow messageStack={messageStack} />
-                        ) : (
-                            <div className="flex flex-row gap-1 items-center justify-center">
-                                <div>Click the</div>
-                                <FaPlus className="inline" />
-                                <div>
-                                    icon to <b>create a Room</b>.
-                                </div>
-                            </div>
-                        )}
+    const renderChatWindow = () => {
+        if (!roomStack.length) {
+            return (
+                <div className="flex flex-row gap-1 items-center justify-center">
+                    <div>Click the</div>
+                    <FaPlus className="inline" />
+                    <div>
+                        icon to <b>create a Room</b>.
                     </div>
+                </div>
+            );
+        } else if (!currentRoom) {
+            return (
+                <div>
+                    <b>Join a Room</b> to start chatting!
+                </div>
+            );
+        } else {
+            return <ChatWindow messageStack={messageStack} />;
+        }
+    };
 
-                    <div className="absolute w-full bottom-0 p-4 flex flex-row items-center justify-center">
-                        {currentRoom ? (
-                            <ChatInput
-                                messageInput={messageInput}
-                                setMessageInput={setMessageInput}
-                                onMessageSubmit={onMessageSubmit}
-                            />
-                        ) : (
-                            ''
-                        )}
-                    </div>
+    const renderChatInput = () => {
+        if (currentRoom)
+            return (
+                <ChatInput
+                    messageInput={messageInput}
+                    setMessageInput={setMessageInput}
+                    onMessageSubmit={onMessageSubmit}
+                />
+            );
+
+        return '';
+    };
+
+    return (
+        <RoomContext.Provider value={currentRoom}>
+            <div className="w-80 min-w-80 border-t border-l flex flex-col items-center justify-center">
+                <RoomList
+                    roomStack={roomStack}
+                    onRoomClick={onRoomClick}
+                    onCreateRoom={onCreateRoom}
+                />
+            </div>
+            <div className="grow flex flex-col relative">
+                <div
+                    className="grow max-h-full flex flex-col items-center justify-center border-r 
+                                    border-b border-t border-black rounded-md"
+                >
+                    {renderChatWindow()}
                 </div>
-            </RoomContext.Provider>
-        </UserContext.Provider>
+
+                <div className="absolute w-full bottom-0 p-4 flex flex-row items-center justify-center">
+                    {renderChatInput()}
+                </div>
+            </div>
+        </RoomContext.Provider>
     );
 }

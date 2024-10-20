@@ -2,6 +2,8 @@ import {useState} from 'react';
 
 import SignUp from '@/components/pages/SignUp';
 import Login from '@/components/pages/Login';
+import {UserAPI} from '@/interfaces/apiInterfaces';
+import UserContext from '@/contexts/UserContext';
 
 export default function UserEntry({
     children: App,
@@ -9,21 +11,27 @@ export default function UserEntry({
     children: React.ReactNode;
 }) {
     const [request, setRequest] = useState('login');
-    const [isAuthenticated, setAuthenticated] = useState(false);
+    const [authenticatedUser, setAuthenticatedUser] = useState<UserAPI | null>(
+        null,
+    );
 
-    if (isAuthenticated) {
-        return App;
+    if (authenticatedUser) {
+        return (
+            <UserContext.Provider value={authenticatedUser}>
+                {App}
+            </UserContext.Provider>
+        );
     } else if (request === 'signup') {
         return (
             <SignUp
-                setAuthenticated={setAuthenticated}
+                setAuthenticatedUser={setAuthenticatedUser}
                 setRequest={setRequest}
             />
         );
     } else {
         return (
             <Login
-                setAuthenticated={setAuthenticated}
+                setAuthenticatedUser={setAuthenticatedUser}
                 setRequest={setRequest}
             />
         );
