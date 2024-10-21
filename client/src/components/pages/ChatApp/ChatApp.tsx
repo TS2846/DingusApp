@@ -1,6 +1,6 @@
-import React, {useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import {FaPlus} from 'react-icons/fa';
-
+import {toast} from 'react-toastify'
 import ChatWindow from '@/components/organisms/ChatWindow';
 import ChatInput from '@/components/molecules/ChatInput';
 import RoomList from '@/components/organisms/RoomList';
@@ -33,31 +33,29 @@ export default function ChatApp() {
 
         return clean_up;
     }, [user]);
-
+    
     useEffect(() => {
         const onRoomCreated = (room: RoomAPI) => {
-            console.log(room);
+            toast('Created Room', {type:'success', autoClose:50, hideProgressBar: true})
             updateRoomStack(prev => [room, ...prev]);
             updateMessageStack([]);
             setCurrentRoom(room);
-            // TODO: Show success Toast
         };
 
         const onRoomJoined = (room: RoomAPI, messages: MessageAPI[]) => {
-            console.log(messages);
+            toast('Joined Room', {type:'success', autoClose:50, hideProgressBar: true})
             setCurrentRoom(room);
             updateMessageStack(messages);
-            // TODO: Show success toast
         };
 
         const onMessageSubmitted = (message: MessageAPI) => {
-            console.log(message);
             const roomId = message.room_id;
 
             if (!currentRoom || currentRoom.id !== roomId) {
                 console.log('Room mismatch');
+                toast('New message received', {type:'info'})
                 return;
-            } // TODO: Show new message toast
+            }
 
             updateMessageStack(prev => [...prev, message]);
         };

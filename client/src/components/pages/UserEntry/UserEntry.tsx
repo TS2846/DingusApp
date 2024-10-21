@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react';
+import {toast} from 'react-toastify';
 
 import SignUp from '@/components/pages/SignUp';
 import Login from '@/components/pages/Login';
@@ -26,23 +27,26 @@ export default function UserEntry({
 
     useEffect(() => {
         const onUserAuthenticated = (user: UserAPI) => {
+            toast("Successfully logged in!", {type: 'success'})
             setAuthenticatedUser(user);
             clean_up();
         };
 
         const onUserAuthenticationError = (err_msg: string) => {
-            console.error(err_msg); // Show an error toast
+            toast(err_msg, {type: 'error'})
+             // Show an error toast
             setAuthenticatedUser(null);
             setRequest('login');
         };
 
         const onUserRegistered = (user: UserAPI) => {
+            toast("Successfully registered and logged in!", {type: 'success'})
             setAuthenticatedUser(user);
             clean_up();
         };
 
         const onUserRegistrationError = (err_msg: string) => {
-            console.error(err_msg);
+            toast(err_msg, {type: 'error'})
             setAuthenticatedUser(null);
             setRequest('signup');
         };
