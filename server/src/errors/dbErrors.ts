@@ -19,6 +19,13 @@ export class UserDoesNotExistError extends Error {
     }
 }
 
+export class DataInsertError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'DataInsertError';
+    }
+}
+
 export class InvalidParametersError extends Error {
     constructor(message: string) {
         super(message);

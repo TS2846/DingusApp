@@ -1,8 +1,10 @@
 export interface SignupPayload {
-    id: string;
+    user_uuid: string;
     username: string;
     password: string;
-    name: string;
+    first_name: string;
+    last_name: string;
+    about_me: string;
 }
 
 export interface LoginPayload {

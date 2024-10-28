@@ -1,18 +1,23 @@
-export interface MessageAPI {
-    sender_id: string;
-    room_id: string;
-    sent_at: Date;
-    body: string;
+export interface UserAPI {
+    uuid: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    about_me: string;
 }
 
 export interface RoomAPI {
-    id: string;
-    name: string;
-    members: UserAPI[];
+    uuid: string;
+    type: 'chat' | 'group';
+    title: string;
+    created_date: number;
+    last_activity: number;
+    members_uuid: string[];
 }
 
-export interface UserAPI {
-    id: string;
-    username: string;
-    name: string;
+export interface MessageAPI {
+    sender_uuid: string;
+    room_uuid: string;
+    sent_date: number;
+    body: string;
 }

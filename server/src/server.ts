@@ -1,7 +1,6 @@
 import express from 'express';
 import {createServer} from 'node:http';
 import {Server} from 'socket.io';
-import {join} from 'path';
 import parser from 'body-parser';
 import cors from 'cors';
 import config from './config';
@@ -26,17 +25,14 @@ const io = new Server(server, {
 
 app.use(cors());
 
-const DB_PATH = join(__dirname, '../sqlite/messageapp.db');
-const db = helpers.initializeDatabase(DB_PATH);
-
 io.on('connection', socket => {
     let user: UserAPI | null = null;
 
     socket.on('user:authenticate', (username: string, password: string) => {
         try {
-            user = helpers.authenticateUser(db, {username, password});
+            user = helpers.authenticateUser(username, password);
             io.to(socket.id).emit('user:authenticated', user);
-            console.log('User ' + user.name + ' logged in');
+            console.log('User ' + user.username + ' logged in');
         } catch (error) {
             let err_msg = 'Server error!';
 
@@ -58,17 +54,25 @@ io.on('connection', socket => {
 
     socket.on(
         'user:register',
-        (name: string, username: string, password: string) => {
+        (
+            username: string,
+            password: string,
+            first_name: string,
+            last_name: string,
+            about_me: string,
+        ) => {
             try {
-                user = helpers.insertUser(db, {
-                    id: uuidv4(),
-                    name,
-                    username,
-                    password,
+                user = helpers.insertUser({
+                    user_uuid: uuidv4(),
+                    username: username,
+                    password: password,
+                    first_name: first_name,
+                    last_name: last_name,
+                    about_me: about_me,
                 });
 
                 io.to(socket.id).emit('user:registered', user);
-                console.log('User ' + user.name + ' logged in');
+                console.log('User ' + user.username + ' logged in');
             } catch (error) {
                 let err_msg = 'Server error!';
 
@@ -89,52 +93,54 @@ io.on('connection', socket => {
     );
 
     socket.on('disconnect', () => {
-        console.log('User ' + user?.name + ' disconnected.');
-    });
-
-    socket.on('room:create', (user_id: string, room_name: string) => {
-        const room_id = uuidv4();
-        helpers.insertRoom(db, {id: room_id, name: room_name});
-        helpers.insertUserInRoom(db, user_id, room_id);
-
-        socket.join(room_id);
-        io.to(socket.id).emit('room:created', {
-            id: room_id,
-            name: room_name,
-            members: [user],
-        });
-    });
-
-    socket.on('room:join', (user_id: string, room_id: string) => {
-        if (helpers.isUserInRoom(db, user_id, room_id)) {
-            const room = helpers.getRoom(db, room_id);
-            const members = helpers.getRoomMembers(db, room_id);
-            const messages = helpers.getMessages(db, room_id);
-            socket.join(room_id);
-            io.to(socket.id).emit('room:joined', {...room, members}, messages);
+        if (user) {
+            console.log('User ' + user.username + ' disconnected.');
         }
+    });
+
+    socket.on('chat:create', (user_uuid: string, friend_uuid: string) => {
+        const chat_uuid = uuidv4();
+        const now = Date.now();
+        const chat_id = helpers.insertChat(chat_uuid, now, now);
+        helpers.insertContact(user_uuid, friend_uuid, chat_id);
+
+        socket.join(chat_uuid);
+
+        const room: RoomAPI = {
+            uuid: user_uuid,
+            type: 'chat',
+            title: helpers.getUser(friend_uuid).username,
+            created_date: now,
+            last_activity: now,
+            members_uuid: [user_uuid, friend_uuid],
+        };
+
+        io.to(socket.id).emit('chat:created', room);
     });
 
     socket.on(
         'message:submit',
-        (sender_id: string, room_id: string, sent_at: Date, body: string) => {
-            helpers.insertMessage(db, {sender_id, room_id, sent_at, body});
-
-            io.emit('message:submitted', {
-                sender_id,
-                room_id,
-                sent_at,
-                body,
-            });
+        (
+            sender_uuid: string,
+            room_uuid: string,
+            sent_date: number,
+            body: string,
+        ) => {
+            if (helpers.isUserInRoom(sender_uuid, room_uuid)) {
+                helpers.insertMessage(sender_uuid, room_uuid, sent_date, body);
+                io.emit('message:submitted', {
+                    sender_uuid,
+                    room_uuid,
+                    sent_date,
+                    body,
+                });
+            }
         },
     );
 
     socket.on('user:get_rooms_req', (user_id: string) => {
-        const rooms = helpers.getUserRooms(db, user_id);
-        const rooms_api: RoomAPI[] = rooms.map(room => {
-            return {...room, members: helpers.getRoomMembers(db, room.id)};
-        });
-        io.to(socket.id).emit('user:get_rooms_res', rooms_api);
+        const rooms: RoomAPI[] = helpers.getUserRooms(user_id);
+        io.to(socket.id).emit('user:get_rooms_res', rooms);
     });
 });
 
