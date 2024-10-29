@@ -38,7 +38,7 @@ export default function Login({setRequest}: LoginProps) {
             <div className="flex flex-row gap-2">
                 <Button
                     type="submit"
-                    label="Login"
+                    ButtonLabel="Login"
                     className="px-4"
                     onClick={onLoginSubmit}
                 />

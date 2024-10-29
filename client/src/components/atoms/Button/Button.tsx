@@ -1,12 +1,13 @@
 import {twMerge} from 'tailwind-merge';
 import {ButtonProps} from 'react-html-props';
+import {IconType} from 'react-icons';
 
 interface ButtonWithLabelProps extends ButtonProps {
-    label: string;
+    ButtonLabel: string | IconType;
 }
 
 export default function Button({
-    label,
+    ButtonLabel,
     className = '',
     ...restProps
 }: ButtonWithLabelProps) {
@@ -18,7 +19,7 @@ export default function Button({
             )}
             {...restProps}
         >
-            {label}
+            {typeof ButtonLabel === 'string' ? ButtonLabel : <ButtonLabel />}
         </button>
     );
 }

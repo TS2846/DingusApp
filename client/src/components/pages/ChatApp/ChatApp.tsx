@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react';
-import {FaPlus} from 'react-icons/fa';
-import {toast} from 'react-toastify'
+import {MdPersonAddAlt1} from 'react-icons/md';
+import {toast} from 'react-toastify';
+
 import ChatWindow from '@/components/organisms/ChatWindow';
 import ChatInput from '@/components/molecules/ChatInput';
 import RoomList from '@/components/organisms/RoomList';
@@ -33,20 +34,28 @@ export default function ChatApp() {
 
         return clean_up;
     }, [user]);
-    
+
     useEffect(() => {
         const onRoomCreated = (room: RoomAPI) => {
-            toast('Created Room', {type:'success', autoClose:50, hideProgressBar: true})
+            toast('Created Room', {
+                type: 'success',
+                autoClose: 50,
+                hideProgressBar: true,
+            });
             updateRoomStack(prev => [room, ...prev]);
             updateMessageStack([]);
             setCurrentRoom(room);
         };
 
         const onRoomJoined = (room_uuid: string, messages: MessageAPI[]) => {
-            toast('Joined Room', {type:'success', autoClose:50, hideProgressBar: true})
-            const room = roomStack.filter((r) => r.uuid === room_uuid)
+            toast('Joined Room', {
+                type: 'success',
+                autoClose: 50,
+                hideProgressBar: true,
+            });
+            const room = roomStack.filter(r => r.uuid === room_uuid);
             console.log(room);
-            console.log(room_uuid)
+            console.log(room_uuid);
 
             setCurrentRoom(room[0]);
             updateMessageStack(messages);
@@ -57,7 +66,7 @@ export default function ChatApp() {
 
             if (!currentRoom || currentRoom.uuid !== roomId) {
                 console.log('Room mismatch');
-                toast('New message received', {type:'info'})
+                toast('New message received', {type: 'info'});
                 return;
             }
 
@@ -81,18 +90,23 @@ export default function ChatApp() {
         if (!roomStack.length) {
             return (
                 <div className="flex flex-row gap-1 items-center justify-center">
-                    <div>Click the</div>
-                    <FaPlus className="inline" />
-                    <div>
-                        icon to <b>create a Room</b>.
-                    </div>
+                    <div>Add a friend</div>
+                    <MdPersonAddAlt1 className="inline" />
+                    <div>using their username.</div>
                 </div>
             );
         } else if (!currentRoom) {
             return (
-                <div>
-                    <b>Join a Room</b> to start chatting!
-                </div>
+                <>
+                    <div>
+                        <b>Join a Room</b> to start chatting!
+                    </div>
+                    <div className="flex flex-row gap-1 items-center justify-center">
+                        <div>or, add a friend</div>
+                        <MdPersonAddAlt1 className="inline" />
+                        <div>using their username.</div>
+                    </div>
+                </>
             );
         } else {
             return <ChatWindow messageStack={messageStack} />;

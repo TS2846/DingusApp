@@ -48,7 +48,7 @@ export default function ChatInput({
                     type="text"
                 />
                 <Button
-                    label="Send"
+                    ButtonLabel="Send"
                     className="px-5 py-2 bg-white"
                     type="submit"
                     onClick={onMessageSubmit}

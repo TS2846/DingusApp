@@ -17,7 +17,14 @@ export default function SignUp({setRequest}: SignUpProps) {
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     ) => {
         e.preventDefault();
-        socket.emit('user:register', username, password, name, 'last_name', 'about_me');
+        socket.emit(
+            'user:register',
+            username,
+            password,
+            name,
+            'last_name',
+            'about_me',
+        );
     };
 
     return (
@@ -43,7 +50,7 @@ export default function SignUp({setRequest}: SignUpProps) {
             <div className="flex flex-row gap-2">
                 <Button
                     type="submit"
-                    label="Sign Up"
+                    ButtonLabel="Sign Up"
                     className="px-4"
                     onClick={onSignupSubmit}
                 />
