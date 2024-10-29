@@ -24,8 +24,8 @@ export default function ChatInput({
 
         socket.emit(
             'message:submit',
-            user?.id,
-            room?.id,
+            user?.uuid,
+            room?.uuid,
             Date.now(),
             messageInput,
         );

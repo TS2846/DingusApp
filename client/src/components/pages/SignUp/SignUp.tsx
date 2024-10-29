@@ -17,7 +17,7 @@ export default function SignUp({setRequest}: SignUpProps) {
         e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     ) => {
         e.preventDefault();
-        socket.emit('user:register', name, username, password);
+        socket.emit('user:register', username, password, name, 'last_name', 'about_me');
     };
 
     return (

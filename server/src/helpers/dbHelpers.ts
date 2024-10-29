@@ -7,11 +7,10 @@ import {DataInsertError} from '../errors/dbErrors';
 import {Chat, Group, User} from '../models/dbModels';
 import {SignupPayload} from '../types/payload';
 import {MessageAPI, RoomAPI, UserAPI} from '../interfaces/apiInterfaces';
-import Database from 'better-sqlite3';
 
 export function initializeDatabase() {
     try {
-        dropTables();
+        //dropTables();
         createTables();
     } catch (error) {
         let errMsg = 'unknown error';
@@ -110,40 +109,56 @@ export function insertMessage(
             VALUES (?, ?, ?, ?, ?)`,
     );
 
-    const stmt_update_activity = db.prepare(
-        `UPDATE ? SET last_activity = ? WHERE id = ?`,
-    );
+    // const stmt_update_activity = db.prepare(
+    //     `UPDATE ? SET last_activity = ? WHERE id = ?`,
+    // );
 
     const sender_id = getUser(sender_uuid).id;
 
     if (chatExists(room_uuid)) {
         const chat_id = getChat(room_uuid).id;
         stmt.run(sender_id, sent_date, body, chat_id, null);
-        stmt_update_activity.run('chats', sent_date, chat_id);
+        db.prepare(
+            `
+            UPDATE chats SET last_activity = ? WHERE id = ?
+            `,
+        ).run(sent_date, chat_id);
     } else if (groupExists(room_uuid)) {
         const group_id = getGroup(room_uuid).id;
         stmt.run(sender_id, sent_date, body, null, group_id);
-        stmt_update_activity.run('groups', sent_date, group_id);
+        db.prepare(
+            `
+            UPDATE groups SET last_activity = ? WHERE id = ?
+            `,
+        ).run(sent_date, group_id);
     } else {
         throw new DataInsertError('room not found');
     }
 }
 
 // GET Functions
+export function getUserByUsername(username: string) {
+    const user = db
+        .prepare<string, User>('SELECT * FROM users WHERE username = ?')
+        .get(username);
+
+    if (!user) throw new DataInsertError('user not found');
+    return user;
+}
 
 export function getUser(user_uuid: string) {
     const user = db
-        .prepare<string, User>('SELECT * FROM users WHERE user_uuid = ?')
+        .prepare<string, User>('SELECT * FROM users WHERE uuid = ?')
         .get(user_uuid);
 
     if (!user) throw new DataInsertError('user not found');
     return user;
 }
 
-export function getChat(char_uuid: string) {
+export function getChat(chat_uuid: string) {
     const chat = db
         .prepare<string, Chat>('SELECT * FROM chats WHERE uuid = ?')
-        .get(char_uuid);
+        .get(chat_uuid);
 
     if (!chat) throw new DataInsertError('chat not found');
 
@@ -216,7 +231,7 @@ function getUserGroupRooms(user_uuid: string): RoomAPI[] {
         SELECT g.uuid          as uuid,
                g.title         as title,
                g.created_date  as created_date,
-               g.last_activity as last_activity,
+               g.last_activity as last_activity
         FROM users_groups ug
                  JOIN
              users u ON ug.user_id = u.id
@@ -254,14 +269,80 @@ export function getUserRooms(user_uuid: string): RoomAPI[] {
     );
 }
 
-// CHECK Functions
+export function getChatMessages(room_uuid: string): MessageAPI[] {
+    const messages = db
+        .prepare<string, MessageAPI>(
+            `
+        SELECT
+            u.uuid as sender_uuid,
+            ch.uuid as room_uuid,
+            m.sent_date as sent_date,
+            m.body as body
+        FROM
+            messages m
+                JOIN
+            users u ON u.id = m.sender_id
+                JOIN
+            chats ch ON m.chat_id = ch.id
+        WHERE
+            ch.uuid = ?     
+        `,
+        )
+        .all(room_uuid);
+    return messages;
+}
 
+export function getGroupMessages(room_uuid: string): MessageAPI[] {
+    const messages = db
+        .prepare<string, MessageAPI>(
+            `
+        SELECT
+            u.uuid as sender_uuid,
+            g.uuid as room_uuid,
+            m.sent_date as sent_date,
+            m.body as body
+        FROM
+            messages m
+                JOIN
+            users u ON u.id = m.sender_id
+                JOIN
+            groups g ON m.group_id = g.id
+        WHERE
+            g.uuid = ?   
+        `,
+        )
+        .all(room_uuid);
+    return messages;
+}
+
+// CHECK Functions
+export function contactExists(
+    user_uuid: string,
+    friend_uuid: string,
+): boolean | string {
+    const user = getUser(user_uuid);
+    const friend = getUser(friend_uuid);
+    const row = db
+        .prepare<number[], {uuid: string}>(
+            `
+        SELECT
+            ch.uuid as uuid
+        FROM
+            contacts con
+                JOIN
+            chats ch ON con.chat_id = ch.id
+        WHERE
+            con.user_id = ?
+                AND
+            con.friend_id = ?
+        `,
+        )
+        .get(user.id, friend.id);
+    return row ? row.uuid : false;
+}
 export function userExists(username: string): boolean {
     const row = db
-        .prepare<
-            string,
-            number
-        >(`SELECT EXISTS (SELECT * FROM users WHERE username = ?)`)
+        .prepare<string, number>(`SELECT * FROM users WHERE username = ?`)
         .get(username);
 
     return !!row;
@@ -269,10 +350,7 @@ export function userExists(username: string): boolean {
 
 export function chatExists(chat_uuid: string) {
     const row = db
-        .prepare<
-            string,
-            number
-        >(`SELECT EXISTS (SELECT * FROM chats WHERE uuid = ?)`)
+        .prepare<string, number>(`SELECT * FROM chats WHERE uuid = ?`)
         .get(chat_uuid);
 
     return !!row;
@@ -280,10 +358,7 @@ export function chatExists(chat_uuid: string) {
 
 export function groupExists(group_uuid: string) {
     const row = db
-        .prepare<
-            string,
-            number
-        >(`SELECT EXISTS (SELECT * FROM groups WHERE uuid = ?)`)
+        .prepare<string, number>(`SELECT * FROM groups WHERE uuid = ?`)
         .get(group_uuid);
 
     return !!row;
@@ -292,39 +367,39 @@ export function groupExists(group_uuid: string) {
 export function isUserInRoom(user_uuid: string, room_uuid: string) {
     const row_chat = db
         .prepare(
-            `SELECT EXISTS (
-                SELECT
-                    *
-                FROM
-                    constacts con
-                        JOIN
-                    users u ON con.user_id = u.id
-                        JOIN
-                    chats ch ON con.chat_id = ch.id
-                WHERE
-                    u.uuid = ?
-                        AND
-                    ch.uuid = ?
-            )`,
+            `
+            SELECT
+                *
+            FROM
+                contacts con
+                    JOIN
+                users u ON con.user_id = u.id
+                    JOIN
+                chats ch ON con.chat_id = ch.id
+            WHERE
+                u.uuid = ?
+                    AND
+                ch.uuid = ?
+            `,
         )
         .get(user_uuid, room_uuid);
 
     const row_group = db
         .prepare(
-            `SELECT EXISTS (
-                SELECT
-                    *
-                FROM
-                    users_groups ug
-                        JOIN
-                    users u ON ug.user_id = u.id
-                        JOIN
-                    groups g ON ug.group_id = g.id
-                WHERE
-                    u.uuid = ?
-                        AND
-                    g.uuid = ?
-            )`,
+            `
+            SELECT
+                *
+            FROM
+                users_groups ug
+                    JOIN
+                users u ON ug.user_id = u.id
+                    JOIN
+                groups g ON ug.group_id = g.id
+            WHERE
+                u.uuid = ?
+                    AND
+                g.uuid = ?
+            `,
         )
         .get(user_uuid, room_uuid);
 

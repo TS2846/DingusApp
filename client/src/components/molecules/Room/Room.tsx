@@ -12,12 +12,12 @@ export default function Room({room}: RoomProps) {
     const user = useUserContext()!;
 
     const onRoomJoin = (room: RoomAPI) => {
-        if (room.id === currentRoom?.id) return;
+        if (room.uuid === currentRoom?.uuid) return;
 
-        socket.emit('room:join', user.id, room.id);
+        socket.emit('room:join', user.uuid, room.uuid);
     };
 
-    const isActive = room.id === currentRoom?.id;
+    const isActive = room.uuid === currentRoom?.uuid;
     const colors = isActive
         ? 'bg-purple-600 text-white font-bold'
         : 'bg-gray-200 text-gray-800 hover:bg-gray-300';
@@ -30,7 +30,7 @@ export default function Room({room}: RoomProps) {
                 ${colors}`}
             onClick={() => onRoomJoin(room)}
         >
-            {room.name}
+            {room.title}
         </div>
     );
 }

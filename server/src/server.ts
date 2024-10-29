@@ -24,6 +24,7 @@ const io = new Server(server, {
 });
 
 app.use(cors());
+helpers.initializeDatabase();
 
 io.on('connection', socket => {
     let user: UserAPI | null = null;
@@ -84,6 +85,7 @@ io.on('connection', socket => {
                         'user:registration_error',
                         error.message,
                     );
+                    console.error(error);
                 } else {
                     console.error(error);
                     io.to(socket.id).emit('user:registration_error', err_msg);
@@ -92,30 +94,59 @@ io.on('connection', socket => {
         },
     );
 
+    socket.on('room:join', (user_uuid: string, room_uuid: string) => {
+        socket.join(room_uuid);
+        if (helpers.chatExists(room_uuid)) {
+            io.to(socket.id).emit(
+                'room:joined',
+                room_uuid,
+                helpers.getChatMessages(room_uuid),
+            );
+        } else if (helpers.groupExists(room_uuid)) {
+            io.to(socket.id).emit(
+                'room:joined',
+                room_uuid,
+                helpers.getGroupMessages(room_uuid),
+            );
+        }
+        console.log(user_uuid + ' joined room ' + room_uuid);
+    });
+
     socket.on('disconnect', () => {
         if (user) {
             console.log('User ' + user.username + ' disconnected.');
         }
     });
 
-    socket.on('chat:create', (user_uuid: string, friend_uuid: string) => {
-        const chat_uuid = uuidv4();
-        const now = Date.now();
-        const chat_id = helpers.insertChat(chat_uuid, now, now);
-        helpers.insertContact(user_uuid, friend_uuid, chat_id);
+    socket.on('chat:create', (user_uuid: string, friend_username: string) => {
+        const friend = helpers.getUserByUsername(friend_username);
+        const room_uuid = helpers.contactExists(user_uuid, friend.uuid);
+        if (typeof room_uuid === 'string') {
+            // const chat = helpers.getChat(room_uuid);
 
-        socket.join(chat_uuid);
+            io.to(socket.id).emit(
+                'room:joined',
+                room_uuid,
+                helpers.getChatMessages(room_uuid),
+            );
+        } else {
+            const chat_uuid = uuidv4();
+            const now = Date.now();
+            const chat_id = helpers.insertChat(chat_uuid, now, now);
+            helpers.insertContact(user_uuid, friend.uuid, chat_id);
+            socket.join(chat_uuid);
 
-        const room: RoomAPI = {
-            uuid: user_uuid,
-            type: 'chat',
-            title: helpers.getUser(friend_uuid).username,
-            created_date: now,
-            last_activity: now,
-            members_uuid: [user_uuid, friend_uuid],
-        };
+            const room: RoomAPI = {
+                uuid: chat_uuid,
+                type: 'chat',
+                title: friend.username,
+                created_date: now,
+                last_activity: now,
+                members_uuid: [user_uuid, friend.uuid],
+            };
 
-        io.to(socket.id).emit('chat:created', room);
+            io.to(socket.id).emit('chat:created', room);
+        }
     });
 
     socket.on(
@@ -138,8 +169,8 @@ io.on('connection', socket => {
         },
     );
 
-    socket.on('user:get_rooms_req', (user_id: string) => {
-        const rooms: RoomAPI[] = helpers.getUserRooms(user_id);
+    socket.on('user:get_rooms_req', (user_uuid: string) => {
+        const rooms: RoomAPI[] = helpers.getUserRooms(user_uuid);
         io.to(socket.id).emit('user:get_rooms_res', rooms);
     });
 });

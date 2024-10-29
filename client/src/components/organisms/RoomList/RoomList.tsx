@@ -1,9 +1,11 @@
-import {FaPlus} from 'react-icons/fa';
 
 import Room from '@/components/molecules/Room';
 import {RoomAPI} from '@/interfaces/apiInterfaces';
 import {useUserContext} from '@/contexts/UserContext';
 import {socket} from '@/socket';
+import Input from '@/components/atoms/Input'
+import Button from '@/components/atoms/Button';
+import { useState } from 'react';
 
 type RoomListProps = {
     roomStack: RoomAPI[];
@@ -11,14 +13,14 @@ type RoomListProps = {
 
 export default function RoomList({roomStack}: RoomListProps) {
     const user = useUserContext()!;
-    const onCreateRoom = () => {
-        socket.emit('room:create', user.id, `Room ${roomStack.length + 1}`);
+    const onCreateRoom = (friend_uuid: string) => {
+        socket.emit('chat:create', user.uuid, friend_uuid);
     };
-
+    const [friendUuid, setFriendUuid] = useState('')
     return (
         <div
             id="room-box"
-            className="w-full h-full border border-black rounded-md overflow-y-scroll justify-center p-2 relative"
+            className="w-full h-full border border-black rounded-md justify-center p-2 relative flex flex-col"
         >
             <div className="text-xl font-bold flex flex-col items-center justify-center p-2">
                 Your Rooms
@@ -36,21 +38,22 @@ export default function RoomList({roomStack}: RoomListProps) {
                 ))}
             </div>
             <div
-                className="group absolute bottom-5 right-5 w-14 h-14 
+                className="
                     flex flex-col items-center justify-center 
-                    rounded-full text-white bg-black hover:text-2xl 
-                    transition-all ease-in hover:cursor-pointer"
-                onClick={onCreateRoom}
+
+                    "  
             >
-                <span
-                    className={
-                        'p-3 rounded-full bg-white ' +
-                        (roomStack.length
-                            ? 'collapse absolute bg-none'
-                            : 'absolute animate-ping group-hover:collapse')
-                    }
-                ></span>
-                <FaPlus />
+                <div
+                    className="
+                        flex flex-row
+                    "
+                >
+                    <Input value={friendUuid} onChange={(e) => {setFriendUuid(e.target.value)}}/>
+
+                    <Button label='Add Friend'
+                        onClick={() => {onCreateRoom(friendUuid)}}
+                    />
+                </div>
             </div>
         </div>
     );

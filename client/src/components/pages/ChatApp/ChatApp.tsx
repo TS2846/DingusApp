@@ -18,7 +18,7 @@ export default function ChatApp() {
     const [roomStack, updateRoomStack] = useState<RoomAPI[]>([]);
 
     useEffect(() => {
-        socket.emit('user:get_rooms_req', user.id);
+        socket.emit('user:get_rooms_req', user.uuid);
 
         const onGetRoomsResponse = (rooms: RoomAPI[]) => {
             console.log(rooms);
@@ -42,16 +42,20 @@ export default function ChatApp() {
             setCurrentRoom(room);
         };
 
-        const onRoomJoined = (room: RoomAPI, messages: MessageAPI[]) => {
+        const onRoomJoined = (room_uuid: string, messages: MessageAPI[]) => {
             toast('Joined Room', {type:'success', autoClose:50, hideProgressBar: true})
-            setCurrentRoom(room);
+            const room = roomStack.filter((r) => r.uuid === room_uuid)
+            console.log(room);
+            console.log(room_uuid)
+
+            setCurrentRoom(room[0]);
             updateMessageStack(messages);
         };
 
         const onMessageSubmitted = (message: MessageAPI) => {
-            const roomId = message.room_id;
+            const roomId = message.room_uuid;
 
-            if (!currentRoom || currentRoom.id !== roomId) {
+            if (!currentRoom || currentRoom.uuid !== roomId) {
                 console.log('Room mismatch');
                 toast('New message received', {type:'info'})
                 return;
@@ -61,17 +65,17 @@ export default function ChatApp() {
         };
 
         const clean_up = () => {
-            socket.off('room:created', onRoomCreated);
+            socket.off('chat:created', onRoomCreated);
             socket.off('room:joined', onRoomJoined);
             socket.off('message:submitted', onMessageSubmitted);
         };
 
-        socket.on('room:created', onRoomCreated);
+        socket.on('chat:created', onRoomCreated);
         socket.on('room:joined', onRoomJoined);
         socket.on('message:submitted', onMessageSubmitted);
 
         return clean_up;
-    }, [currentRoom, user]);
+    }, [currentRoom, user, roomStack]);
 
     const renderChatWindow = () => {
         if (!roomStack.length) {
