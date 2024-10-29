@@ -10,12 +10,14 @@ import {MessageAPI, RoomAPI, UserAPI} from '../interfaces/apiInterfaces';
 
 export function initializeDatabase() {
     try {
-        //dropTables();
+        dropTables();
         createTables();
     } catch (error) {
-        let errMsg = 'unknown error';
-        if (error instanceof Error) errMsg = error.message;
-        console.error('Could not initialize tables into database: ' + errMsg);
+        if (error instanceof Error) {
+            console.error(error);
+        } else {
+            console.error('Could not initialize tables into database.');
+        }
     }
 }
 
@@ -108,10 +110,6 @@ export function insertMessage(
         `INSERT INTO messages (sender_id, sent_date, body, chat_id, group_id) 
             VALUES (?, ?, ?, ?, ?)`,
     );
-
-    // const stmt_update_activity = db.prepare(
-    //     `UPDATE ? SET last_activity = ? WHERE id = ?`,
-    // );
 
     const sender_id = getUser(sender_uuid).id;
 

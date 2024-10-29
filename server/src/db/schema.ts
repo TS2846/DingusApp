@@ -2,7 +2,7 @@ import db from './connection';
 
 export function createTables() {
     db.exec(`
-        CREATE TABLE IF NOT EXISTS users (
+        CREATE TABLE users (
             id              INTEGER         PRIMARY KEY AUTOINCREMENT,
             uuid            NCHAR(36)       UNIQUE NOT NULL,
             username        VARCHAR(60)     UNIQUE NOT NULL,
@@ -12,14 +12,14 @@ export function createTables() {
             about_me        TEXT            DEFAULT ''
         );
         
-        CREATE TABLE IF NOT EXISTS chats (
+        CREATE TABLE chats (
             id              INTEGER         PRIMARY KEY AUTOINCREMENT,
             uuid            NCHAR(36)       NOT NULL,
             created_date    INTEGER         NOT NULL,
             last_activity   INTEGER         NOT NULL
         );
 
-        CREATE TABLE IF NOT EXISTS groups (
+        CREATE TABLE groups (
             id              INTEGER         PRIMARY KEY AUTOINCREMENT,
             uuid            NCHAR(36)       NOT NULL,
             created_date    INTEGER         NOT NULL,
@@ -27,7 +27,7 @@ export function createTables() {
             title           VARCHAR(60)     NOT NULL
         );
 
-        CREATE TABLE IF NOT EXISTS contacts (
+        CREATE TABLE contacts (
             id              INTEGER         PRIMARY KEY AUTOINCREMENT,
             user_id         INTEGER         NOT NULL,
             friend_id       INTEGER         NOT NULL,
@@ -86,11 +86,11 @@ export function createTables() {
 
 export function dropTables() {
     db.exec(`
-        DROP TABLE IF EXISTS users;
+        DROP TABLE IF EXISTS messages;
+        DROP TABLE IF EXISTS users_groups;
+        DROP TABLE IF EXISTS contacts;
+        DROP TABLE IF EXISTS groups;
         DROP TABLE IF EXISTS chats;
         DROP TABLE IF EXISTS users;
-        DROP TABLE IF EXISTS contacts;
-        DROP TABLE IF EXISTS users_groups;
-        DROP TABLE IF EXISTS messages;
     `);
 }
