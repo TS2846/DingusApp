@@ -19,10 +19,10 @@ export class UserDoesNotExistError extends Error {
     }
 }
 
-export class DataInsertError extends Error {
+export class GetDataError extends Error {
     constructor(message: string) {
         super(message);
-        this.name = 'DataInsertError';
+        this.name = 'GetDataError';
     }
 }
 
@@ -30,5 +30,12 @@ export class InvalidParametersError extends Error {
     constructor(message: string) {
         super(message);
         this.name = 'InvalidParametersError';
+    }
+}
+
+export class UserAuthorizationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserAuthorizationError';
     }
 }

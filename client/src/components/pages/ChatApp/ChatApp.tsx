@@ -6,11 +6,19 @@ import ChatWindow from '@/components/organisms/ChatWindow';
 import ChatInput from '@/components/molecules/ChatInput';
 import RoomList from '@/components/organisms/RoomList';
 import RoomContext from '@/contexts/RoomContext';
-import {MessageAPI, RoomAPI} from '@/interfaces/apiInterfaces';
+import {MessageAPI, RoomAPI, UserAPI} from '@/interfaces/apiInterfaces';
 import {useUserContext} from '@/contexts/UserContext';
 import {socket} from '@/socket';
 
-export default function ChatApp() {
+type ChatAppProps = {
+    setAuthenticatedUser: React.Dispatch<React.SetStateAction<UserAPI | null>>;
+    setRequest: React.Dispatch<React.SetStateAction<string>>;
+};
+
+export default function ChatApp({
+    setAuthenticatedUser,
+    setRequest,
+}: ChatAppProps) {
     const user = useUserContext()!;
 
     const [messageInput, setMessageInput] = useState<string>('');
@@ -19,10 +27,9 @@ export default function ChatApp() {
     const [roomStack, updateRoomStack] = useState<RoomAPI[]>([]);
 
     useEffect(() => {
-        socket.emit('user:get_rooms_req', user.uuid);
+        socket.emit('user:get_rooms_req');
 
         const onGetRoomsResponse = (rooms: RoomAPI[]) => {
-            console.log(rooms);
             updateRoomStack(rooms);
         };
 
@@ -37,7 +44,7 @@ export default function ChatApp() {
 
     useEffect(() => {
         const onRoomCreated = (room: RoomAPI) => {
-            toast('Created Room', {
+            toast('Room created!', {
                 type: 'success',
                 autoClose: 50,
                 hideProgressBar: true,
@@ -48,24 +55,29 @@ export default function ChatApp() {
         };
 
         const onRoomJoined = (room_uuid: string, messages: MessageAPI[]) => {
-            toast('Joined Room', {
+            toast('Room joined!', {
                 type: 'success',
                 autoClose: 50,
                 hideProgressBar: true,
             });
             const room = roomStack.filter(r => r.uuid === room_uuid);
-            console.log(room);
-            console.log(room_uuid);
 
             setCurrentRoom(room[0]);
             updateMessageStack(messages);
+        };
+
+        const onRoomInvitation = (room: RoomAPI) => {
+            toast('New invitation received', {
+                type: 'info',
+                hideProgressBar: true,
+            });
+            updateRoomStack(prev => [room, ...prev]);
         };
 
         const onMessageSubmitted = (message: MessageAPI) => {
             const roomId = message.room_uuid;
 
             if (!currentRoom || currentRoom.uuid !== roomId) {
-                console.log('Room mismatch');
                 toast('New message received', {type: 'info'});
                 return;
             }
@@ -73,18 +85,39 @@ export default function ChatApp() {
             updateMessageStack(prev => [...prev, message]);
         };
 
+        const onAuthorizationError = (err_msg: string) => {
+            // logout user
+            setAuthenticatedUser(null);
+            setRequest('login');
+            toast(err_msg, {
+                type: 'error',
+            });
+        };
+
+        const onRequestError = (err_msg: string) => {
+            toast(err_msg, {
+                type: 'error',
+            });
+        };
+
         const clean_up = () => {
             socket.off('chat:created', onRoomCreated);
             socket.off('room:joined', onRoomJoined);
+            socket.off('room:invitation', onRoomInvitation);
             socket.off('message:submitted', onMessageSubmitted);
+            socket.off('user:authorization_error', onAuthorizationError);
+            socket.off('user:request_error', onRequestError);
         };
 
         socket.on('chat:created', onRoomCreated);
         socket.on('room:joined', onRoomJoined);
+        socket.on('room:invitation', onRoomInvitation);
         socket.on('message:submitted', onMessageSubmitted);
+        socket.on('user:authorization_error', onAuthorizationError);
+        socket.on('user:request_error', onRequestError);
 
         return clean_up;
-    }, [currentRoom, user, roomStack]);
+    }, [currentRoom, user, roomStack, setAuthenticatedUser, setRequest]);
 
     const renderChatWindow = () => {
         if (!roomStack.length) {

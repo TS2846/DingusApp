@@ -1,5 +1,5 @@
 export interface User {
-    id: number;
+    id: number | bigint;
     uuid: string;
     username: string;
     _password: string;
@@ -9,14 +9,14 @@ export interface User {
 }
 
 export interface Chat {
-    id: number;
+    id: number | bigint;
     uuid: string;
     created_date: number;
     last_activity: number;
 }
 
 export interface Group {
-    id: number;
+    id: number | bigint;
     uuid: string;
     created_date: number;
     last_activity: number;
@@ -24,23 +24,23 @@ export interface Group {
 }
 
 export interface Contact {
-    id: number;
-    user_id: number;
-    friend_id: number;
-    chat_id: number;
+    id: number | bigint;
+    user_id: number | bigint;
+    friend_id: number | bigint;
+    chat_id: number | bigint;
 }
 
 export interface UserGroup {
-    id: number;
-    user_id: number;
-    group_id: number;
+    id: number | bigint;
+    user_id: number | bigint;
+    group_id: number | bigint;
 }
 
 export interface Message {
-    id: number;
-    sender_id: number;
+    id: number | bigint;
+    sender_id: number | bigint;
     sent_date: number;
     body: string;
-    chat_id: number | null;
-    group_id: number | null;
+    chat_id: number | bigint | null;
+    group_id: number | bigint | null;
 }

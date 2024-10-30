@@ -15,7 +15,7 @@ type RoomListProps = {
 export default function RoomList({roomStack}: RoomListProps) {
     const user = useUserContext()!;
     const onCreateRoom = (friend_uuid: string) => {
-        socket.emit('chat:create', user.uuid, friend_uuid);
+        socket.emit('chat:create', friend_uuid);
     };
     const [friendUuid, setFriendUuid] = useState('');
     return (

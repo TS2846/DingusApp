@@ -6,12 +6,9 @@ import Login from '@/components/pages/Login';
 import {UserAPI} from '@/interfaces/apiInterfaces';
 import UserContext from '@/contexts/UserContext';
 import {socket} from '@/socket';
+import ChatApp from '@/components/pages/ChatApp';
 
-export default function UserEntry({
-    children: App,
-}: {
-    children: React.ReactNode;
-}) {
+export default function UserEntry() {
     const [request, setRequest] = useState('login');
     const [authenticatedUser, setAuthenticatedUser] = useState<UserAPI | null>(
         null,
@@ -27,26 +24,26 @@ export default function UserEntry({
 
     useEffect(() => {
         const onUserAuthenticated = (user: UserAPI) => {
-            toast("Successfully logged in!", {type: 'success'})
+            toast('Successfully logged in!', {type: 'success'});
             setAuthenticatedUser(user);
             clean_up();
         };
 
         const onUserAuthenticationError = (err_msg: string) => {
-            toast(err_msg, {type: 'error'})
-             // Show an error toast
+            toast(err_msg, {type: 'error'});
+            // Show an error toast
             setAuthenticatedUser(null);
             setRequest('login');
         };
 
         const onUserRegistered = (user: UserAPI) => {
-            toast("Successfully registered and logged in!", {type: 'success'})
+            toast('Successfully registered and logged in!', {type: 'success'});
             setAuthenticatedUser(user);
             clean_up();
         };
 
         const onUserRegistrationError = (err_msg: string) => {
-            toast(err_msg, {type: 'error'})
+            toast(err_msg, {type: 'error'});
             setAuthenticatedUser(null);
             setRequest('signup');
         };
@@ -69,7 +66,10 @@ export default function UserEntry({
     if (authenticatedUser) {
         return (
             <UserContext.Provider value={authenticatedUser}>
-                {App}
+                <ChatApp
+                    setAuthenticatedUser={setAuthenticatedUser}
+                    setRequest={setRequest}
+                />
             </UserContext.Provider>
         );
     } else if (request === 'signup') {
