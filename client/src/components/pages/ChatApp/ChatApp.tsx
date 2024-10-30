@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, Dispatch, SetStateAction} from 'react';
 import {MdPersonAddAlt1} from 'react-icons/md';
 import {toast} from 'react-toastify';
 
@@ -11,8 +11,8 @@ import {useUserContext} from '@/contexts/UserContext';
 import {socket} from '@/socket';
 
 type ChatAppProps = {
-    setAuthenticatedUser: React.Dispatch<React.SetStateAction<UserAPI | null>>;
-    setRequest: React.Dispatch<React.SetStateAction<string>>;
+    setAuthenticatedUser: Dispatch<SetStateAction<UserAPI | null>>;
+    setRequest: Dispatch<SetStateAction<string>>;
 };
 
 export default function ChatApp({
@@ -54,6 +54,19 @@ export default function ChatApp({
             setCurrentRoom(room);
         };
 
+        const onGroupAdded = (room: RoomAPI) => {
+            toast('Group updated!', {
+                type: 'success',
+                autoClose: 50,
+                hideProgressBar: true,
+            });
+            updateRoomStack(prev => prev.filter(r => r.uuid !== room.uuid));
+            updateRoomStack(prev => [room, ...prev]);
+            if (currentRoom?.uuid === room.uuid) {
+                socket.emit('room:join', room.uuid);
+            }
+        };
+
         const onRoomJoined = (room_uuid: string, messages: MessageAPI[]) => {
             toast('Room joined!', {
                 type: 'success',
@@ -71,7 +84,11 @@ export default function ChatApp({
                 type: 'info',
                 hideProgressBar: true,
             });
+            updateRoomStack(prev => prev.filter(r => r.uuid !== room.uuid));
             updateRoomStack(prev => [room, ...prev]);
+            if (currentRoom?.uuid === room.uuid) {
+                socket.emit('room:join', room.uuid);
+            }
         };
 
         const onMessageSubmitted = (message: MessageAPI) => {
@@ -103,6 +120,7 @@ export default function ChatApp({
         const clean_up = () => {
             socket.off('chat:created', onRoomCreated);
             socket.off('room:joined', onRoomJoined);
+            socket.off('group:added', onGroupAdded);
             socket.off('room:invitation', onRoomInvitation);
             socket.off('message:submitted', onMessageSubmitted);
             socket.off('user:authorization_error', onAuthorizationError);
@@ -111,6 +129,7 @@ export default function ChatApp({
 
         socket.on('chat:created', onRoomCreated);
         socket.on('room:joined', onRoomJoined);
+        socket.on('group:added', onGroupAdded);
         socket.on('room:invitation', onRoomInvitation);
         socket.on('message:submitted', onMessageSubmitted);
         socket.on('user:authorization_error', onAuthorizationError);

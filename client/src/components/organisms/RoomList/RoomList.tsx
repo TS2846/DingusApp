@@ -14,10 +14,11 @@ type RoomListProps = {
 
 export default function RoomList({roomStack}: RoomListProps) {
     const user = useUserContext()!;
-    const onCreateRoom = (friend_uuid: string) => {
-        socket.emit('chat:create', friend_uuid);
+    const onCreateRoom = (friend_username: string) => {
+        socket.emit('chat:create', friend_username);
+        setFriendUsername('');
     };
-    const [friendUuid, setFriendUuid] = useState('');
+    const [friendUsername, setFriendUsername] = useState('');
     return (
         <div
             id="room-box"
@@ -47,9 +48,9 @@ export default function RoomList({roomStack}: RoomListProps) {
                     <Input
                         className="mx-1"
                         placeholder="Add a Friend"
-                        value={friendUuid}
+                        value={friendUsername}
                         onChange={e => {
-                            setFriendUuid(e.target.value);
+                            setFriendUsername(e.target.value);
                         }}
                     />
 
@@ -57,7 +58,7 @@ export default function RoomList({roomStack}: RoomListProps) {
                         className="px-3 mx-1"
                         ButtonLabel={MdPersonAddAlt1}
                         onClick={() => {
-                            onCreateRoom(friendUuid);
+                            onCreateRoom(friendUsername);
                         }}
                     />
                 </div>

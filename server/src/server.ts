@@ -8,8 +8,9 @@ import {v4 as uuidv4} from 'uuid';
 
 import * as helpers from './helpers/dbHelpers';
 import * as DBErrors from './errors/dbErrors';
-import {RoomAPI} from './interfaces/apiInterfaces';
+import {RoomAPI, UserAPI} from './interfaces/apiInterfaces';
 import {User} from './models/dbModels';
+import {getGroupMembers} from './helpers/dbHelpers';
 
 const app = express();
 
@@ -195,6 +196,69 @@ io.on('connection', socket => {
         }
     });
 
+    socket.on('group:add', (room_uuid: string, friend_username) => {
+        try {
+            authorizeUser(user);
+            const friend = helpers.getUserByUsername(friend_username);
+            let group_uuid = room_uuid;
+            let members: UserAPI[] = [];
+
+            if (helpers.isUserInRoom(friend.uuid, group_uuid)) {
+                socket.emit(
+                    'user:request_error',
+                    'Friend is already in the room.',
+                );
+                return;
+            }
+
+            if (helpers.chatExists(room_uuid)) {
+                group_uuid = uuidv4();
+                const now = Date.now();
+                helpers.insertGroup(
+                    group_uuid,
+                    now,
+                    now,
+                    `${user.username}'s group`,
+                );
+                members = [...helpers.getChatMembers(room_uuid), friend];
+                members.forEach(u =>
+                    helpers.insertUserGroup(u.uuid, group_uuid),
+                );
+                socket.join(group_uuid);
+            } else if (helpers.groupExists(room_uuid)) {
+                members = [...getGroupMembers(room_uuid), friend];
+                helpers.insertUserGroup(friend.uuid, room_uuid);
+            } else {
+                io.to(user.uuid).emit(
+                    'user:request_error',
+                    'Room does not exist!',
+                );
+            }
+            const group = helpers.getGroup(group_uuid);
+            const room: RoomAPI = {
+                uuid: group.uuid,
+                type: 'group',
+                title: group.title,
+                created_date: group.created_date,
+                last_activity: group.last_activity,
+                members_uuid: members.map(m => m.uuid),
+            };
+            members.forEach(m => io.to(m.uuid).emit('group:added', room));
+        } catch (error) {
+            if (error instanceof DBErrors.UserAuthorizationError) {
+                io.to(socket.id).emit(
+                    'user:authorization_error',
+                    error.message,
+                );
+            } else if (error instanceof DBErrors.GetDataError) {
+                io.to(socket.id).emit('user:request_error', error.message);
+            } else {
+                io.to(socket.id).emit('user:request_error', 'Server error!');
+            }
+            console.error(error);
+        }
+    });
+
     socket.on(
         'message:submit',
         (
@@ -247,6 +311,7 @@ io.on('connection', socket => {
         try {
             authorizeUser(user);
             const rooms: RoomAPI[] = helpers.getUserRooms(user.uuid);
+            rooms.forEach(room => socket.join(room.uuid));
             io.to(user.uuid).emit('user:get_rooms_res', rooms);
         } catch (error) {
             if (error instanceof DBErrors.UserAuthorizationError) {

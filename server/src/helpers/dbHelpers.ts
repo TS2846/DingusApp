@@ -87,6 +87,28 @@ export function insertContact(
     return [rowId1, rowId2];
 }
 
+export function insertUserGroup(user_uuid: string, group_uuid: string) {
+    const user = getUser(user_uuid);
+    const group = getGroup(group_uuid);
+
+    db.prepare<(number | BigInt)[]>(
+        `INSERT INTO users_groups (user_id, group_id) VALUES (?, ?)`,
+    ).run(user.id, group.id);
+}
+
+export function insertGroup(
+    group_uuid: string,
+    created_date: number,
+    last_activity: number,
+    title: string,
+): number | BigInt {
+    return db
+        .prepare<
+            [string, number, number, string]
+        >(`INSERT INTO groups (uuid, created_date, last_activity, title) VALUES (?, ?, ?, ?)`)
+        .run(group_uuid, created_date, last_activity, title).lastInsertRowid;
+}
+
 export function insertChat(
     chat_uuid: string,
     created_date: number,
