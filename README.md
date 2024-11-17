@@ -11,7 +11,7 @@ To run the app with full functionality you must run both the client and server c
 3.  Start the **server** component by running the command `npm run dev` while in the `server` directory.
 4.  In another terminal window, start the **client** component by running the command `npm run dev` while in the `client` directory.
 
-By default the front-end of the app is served at `http://localhost:3000`. If you want to change the default ports, create a `.env` file in the root directory.
+By default, the front-end of the app is served at `http://localhost:3000`. If you want to change the default ports, create a `.env` file in the root directory.
 
 ### Sample `.env` Template
 
@@ -32,7 +32,10 @@ Since the `client` and `server` needs to communicate with each other you
 
 ### Other Dependencies
 
--   [react-toastify](https://www.npmjs.com/package/react-toastify)
+-   [@tanstack/react-query](https://www.npmjs.com/package/@tanstack/react-query)
+-   [shadcn/ui](https://ui.shadcn.com/)
+-   [tailwindcss](https://www.npmjs.com/package/tailwindcss)
+-   [tailwind-merge](https://www.npmjs.com/package/tailwind-merge)
 -   [react-icons](https://www.npmjs.com/package/react-icons)
 -   [react-html-props](https://www.npmjs.com/package/react-html-props)
 -   [uuid](https://www.npmjs.com/package/uuid)
