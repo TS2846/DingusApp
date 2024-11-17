@@ -1,8 +1,13 @@
 export interface UserAPI {
     uuid: string;
     username: string;
-    first_name: string;
-    last_name: string;
+    about_me: string;
+}
+
+export interface ContactAPI {
+    uuid: string;
+    room_uuid: string;
+    username: string;
     about_me: string;
 }
 

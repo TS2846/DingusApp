@@ -1,13 +1,15 @@
-import db from '../db/connection';
+import getDBConnection from '../db/connection';
 import {createTables, dropTables} from '../db/schema';
 import {compareSync, genSaltSync, hashSync} from 'bcrypt';
 
 import * as DBErrors from '../errors/dbErrors';
 import {GetDataError} from '../errors/dbErrors';
-import {Chat, Group, User} from '../models/dbModels';
+import {ChatModel, GroupModel, UserModel, UserToken} from '../models/dbModels';
 import {SignupPayload} from '../types/payload';
 import {MessageAPI, RoomAPI, UserAPI} from '../interfaces/apiInterfaces';
 import Database from 'better-sqlite3';
+
+const db = getDBConnection();
 
 export function initializeDatabase() {
     try {
@@ -22,9 +24,12 @@ export function initializeDatabase() {
     }
 }
 
-export function authenticateUser(username: string, password: string): User {
+export function authenticateUser(
+    username: string,
+    password: string,
+): UserModel {
     const user = db
-        .prepare<string, User>(`SELECT * FROM users WHERE username = ?`)
+        .prepare<string, UserModel>(`SELECT *FROM users WHERE username = ?`)
         .get(username);
 
     if (!user) throw new DBErrors.UserDoesNotExistError('user does not exist');
@@ -37,7 +42,18 @@ export function authenticateUser(username: string, password: string): User {
 
 // PUT Functions
 
-export function insertUser(user: SignupPayload): User {
+export function upsertUserToken(
+    user_id: number | bigint,
+    token: string | null,
+) {
+    db.prepare('DELETE FROM user_tokens WHERE user_id = ?').run(user_id);
+    db.prepare('INSERT INTO user_tokens(user_id, token) VALUES (?, ?);').run(
+        user_id,
+        token,
+    );
+}
+
+export function insertUser(user: SignupPayload): UserModel {
     if (userExists(user.username))
         throw new DBErrors.UserAlreadyExistsError('username already exists');
 
@@ -46,25 +62,16 @@ export function insertUser(user: SignupPayload): User {
     const res: Database.RunResult = db
         .prepare(
             `INSERT INTO users 
-            (uuid, username, _password, first_name, last_name, about_me) 
-            VALUES (?, ?, ?, ?, ? ,?)`,
+            (uuid, username, _password, about_me) 
+            VALUES (?, ?, ?, ?)`,
         )
-        .run(
-            user.user_uuid,
-            user.username,
-            _password,
-            user.first_name,
-            user.last_name,
-            user.about_me,
-        );
+        .run(user.user_uuid, user.username, _password, user.about_me);
 
     return {
         id: res.lastInsertRowid,
         uuid: user.user_uuid,
         username: user.username,
         _password: _password,
-        first_name: user.first_name,
-        last_name: user.last_name,
         about_me: user.about_me,
     };
 }
@@ -156,27 +163,39 @@ export function insertMessage(
 }
 
 // GET Functions
-export function getUserByUsername(username: string): User {
+
+export function getUserRefreshToken(user_id: number | bigint) {
+    return (
+        db
+            .prepare<
+                (number | bigint)[],
+                UserToken
+            >('SELECT * FROM user_tokens WHERE user_id = ?')
+            .get(user_id)?.token || null
+    );
+}
+
+export function getUserByUsername(username: string): UserModel {
     const user = db
-        .prepare<string, User>('SELECT * FROM users WHERE username = ?')
+        .prepare<string, UserModel>('SELECT * FROM users WHERE username = ?')
         .get(username);
 
     if (!user) throw new GetDataError(`user ${username} not found`);
     return user;
 }
 
-export function getUser(user_uuid: string): User {
+export function getUser(user_uuid: string): UserModel {
     const user = db
-        .prepare<string, User>('SELECT * FROM users WHERE uuid = ?')
+        .prepare<string, UserModel>('SELECT * FROM users WHERE uuid = ?')
         .get(user_uuid);
 
     if (!user) throw new GetDataError('user not found');
     return user;
 }
 
-export function getChat(chat_uuid: string): Chat {
+export function getChat(chat_uuid: string): ChatModel {
     const chat = db
-        .prepare<string, Chat>('SELECT * FROM chats WHERE uuid = ?')
+        .prepare<string, ChatModel>('SELECT * FROM chats WHERE uuid = ?')
         .get(chat_uuid);
 
     if (!chat) throw new GetDataError('chat not found');
@@ -191,8 +210,6 @@ export function getChatMembers(chat_uuid: string): UserAPI[] {
                 SELECT
                     u.uuid as uuid,
                     u.username as username,
-                    u.first_name as first_name,
-                    u.last_name as last_name,
                     u.about_me as about_me
                 FROM
                     contacts con
@@ -207,9 +224,9 @@ export function getChatMembers(chat_uuid: string): UserAPI[] {
         .all(chat_uuid);
 }
 
-export function getGroup(group_uuid: string): Group {
+export function getGroup(group_uuid: string): GroupModel {
     const group = db
-        .prepare<string, Group>('SELECT * FROM groups WHERE uuid = ?')
+        .prepare<string, GroupModel>('SELECT * FROM groups WHERE uuid = ?')
         .get(group_uuid);
 
     if (!group) throw new GetDataError('group not found');
@@ -308,7 +325,7 @@ function getUserGroupRooms(user_uuid: string): RoomAPI[] {
         )
         .all(user_uuid);
 
-    const stmt_members = db.prepare<string, string>(`
+    const stmt_members = db.prepare<string, {uuid: string}>(`
         SELECT
             u.uuid
         FROM users_groups ug
@@ -322,7 +339,7 @@ function getUserGroupRooms(user_uuid: string): RoomAPI[] {
     return results.map(group => ({
         ...group,
         type: 'group',
-        members_uuid: stmt_members.all(group.uuid),
+        members_uuid: stmt_members.all(group.uuid).map(g => g.uuid),
     }));
 }
 

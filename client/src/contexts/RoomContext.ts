@@ -1,11 +1,20 @@
 import {createContext, useContext} from 'react';
 
-import {RoomAPI} from '@/interfaces/apiInterfaces';
+const RoomContext = createContext<
+    null | [string, React.Dispatch<React.SetStateAction<string>>]
+>(null);
 
-const RoomContext = createContext<RoomAPI | null>(null);
+export const useCurrentRoom = (): [
+    string,
+    React.Dispatch<React.SetStateAction<string>>,
+] => {
+    const value = useContext(RoomContext);
+
+    if (value === null) {
+        throw new Error('useRoom must be used inside a RoomContext');
+    }
+
+    return value;
+};
 
 export default RoomContext;
-
-export function useRoomContext() {
-    return useContext(RoomContext);
-}
