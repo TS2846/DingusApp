@@ -241,8 +241,6 @@ export function getGroupMembers(group_uuid: string): UserAPI[] {
                 SELECT
                     u.uuid as uuid,
                     u.username as username,
-                    u.first_name as first_name,
-                    u.last_name as last_name,
                     u.about_me as about_me
                 FROM
                     users_groups ug
