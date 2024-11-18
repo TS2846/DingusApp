@@ -3,10 +3,6 @@ import {existsSync, mkdirSync, writeFileSync} from 'fs';
 import {dirname} from 'path';
 import Connect from 'better-sqlite3';
 
-if (!existsSync(DB_PATH)) {
-    writeFileSync(DB_PATH, '');
-}
-
 let db: Connect.Database | null = null;
 
 const getDBConnection = (): Connect.Database => {
