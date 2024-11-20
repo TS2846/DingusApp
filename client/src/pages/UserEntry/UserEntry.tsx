@@ -46,7 +46,7 @@ export default function UserEntry() {
             >
                 <div className="h-full relative">
                     <img
-                        src="public/favicon.ico"
+                        src="/favicon.ico"
                         className="absolute top-0 left-0 right-0 ml-auto mr-auto scale-75"
                     />
                     <SignUp setRequest={setRequest} />
@@ -60,7 +60,7 @@ export default function UserEntry() {
             >
                 <div className="h-full relative">
                     <img
-                        src="public/favicon.ico"
+                        src="/favicon.ico"
                         className="absolute top-10 left-0 right-0 ml-auto mr-auto scale-75"
                     />
                     <Login setRequest={setRequest} />

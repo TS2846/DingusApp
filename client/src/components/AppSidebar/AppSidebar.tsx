@@ -87,7 +87,7 @@ export default function AppSidebar() {
                         <div className="flex flex-row items-center justify-between w-full">
                             <span>Direct Messages</span>
                         </div>
-                        <AppSidebarDMPopover contacts={rooms || []} />
+                        <AppSidebarDMPopover />
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <div className="pr-4 flex flex-col gap-1">

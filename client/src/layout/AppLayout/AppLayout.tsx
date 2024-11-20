@@ -1,13 +1,43 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import {useQueryClient} from '@tanstack/react-query';
 
 import {SidebarProvider} from '@/components/ui/sidebar.tsx';
 import AppSidebar from '@/components/AppSidebar';
 import RoomContext from '@/contexts/RoomContext';
 
+import getSocket from '@/socket';
+
 export default function AppLayout({children}: {children: React.ReactNode}) {
     const [currentRoomID, setCurrentRoomID] = useState<number | bigint | null>(
         null,
     );
+    const client = useQueryClient();
+    useEffect(() => {
+        const socket = getSocket();
+        socket.connect();
+
+        const onNewMessage = (room_id: number | bigint) => {
+            client.invalidateQueries({
+                queryKey: ['rooms', room_id, 'messages'],
+            });
+        };
+
+        const onGroupCreated = () => {
+            console.log('Group Created!!!!');
+            client.invalidateQueries({
+                queryKey: ['rooms'],
+            });
+        };
+
+        socket.on('message:new', onNewMessage);
+        socket.on('group:created', onGroupCreated);
+
+        return () => {
+            socket.off('message:new', onNewMessage);
+            socket.off('group:created', onGroupCreated);
+            socket.disconnect();
+        };
+    }, [client]);
     return (
         <RoomContext.Provider value={[currentRoomID, setCurrentRoomID]}>
             <SidebarProvider>
