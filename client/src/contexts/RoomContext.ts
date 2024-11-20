@@ -1,12 +1,16 @@
 import {createContext, useContext} from 'react';
 
 const RoomContext = createContext<
-    null | [string, React.Dispatch<React.SetStateAction<string>>]
+    | null
+    | [
+          number | bigint | null,
+          React.Dispatch<React.SetStateAction<number | bigint | null>>,
+      ]
 >(null);
 
 export const useCurrentRoom = (): [
-    string,
-    React.Dispatch<React.SetStateAction<string>>,
+    number | bigint | null,
+    React.Dispatch<React.SetStateAction<number | bigint | null>>,
 ] => {
     const value = useContext(RoomContext);
 

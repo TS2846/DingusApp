@@ -19,7 +19,6 @@ declare global {
     namespace Express {
         interface User {
             id: number | bigint;
-            uuid: string;
             username: string;
         }
     }
@@ -50,7 +49,7 @@ const verifyRefreshToken = (refreshToken: string): boolean => {
 const createToken = (user: Express.User): string => {
     return jwt.sign(
         {
-            data: {id: user.id, uuid: user.uuid, username: user.username},
+            data: {id: user.id, username: user.username},
         },
         config.JWT_SECRET,
         {
@@ -64,7 +63,7 @@ const createToken = (user: Express.User): string => {
 const createRefreshToken = (user: Express.User): string => {
     return jwt.sign(
         {
-            data: {id: user.id, uuid: user.uuid, username: user.username},
+            data: {id: user.id, username: user.username},
         },
         config.JWT_REFRESH_SECRET,
         {
@@ -119,6 +118,40 @@ passport.use('jwt', jwtStrategy);
 passport.use('jwt-refresh', jwtRefreshStrategy);
 passport.use('jwt-expired', jwtExpiredStrategy);
 
+function handleErrors(error: unknown, res: Response) {
+    if (error instanceof DBErrors.GetDataError) {
+        res.status(404).json({
+            message: error.message,
+        });
+    } else if (error instanceof DBErrors.IncorrectPasswordError) {
+        res.status(401).json({
+            message: error.message,
+        });
+    } else if (error instanceof DBErrors.InvalidParametersError) {
+        res.status(411).json({
+            message: error.message,
+        });
+    } else if (error instanceof DBErrors.UserAlreadyExistsError) {
+        res.status(400).json({
+            message: error.message,
+        });
+    } else if (error instanceof DBErrors.UserDoesNotExistError) {
+        res.status(404).json({
+            message: error.message,
+        });
+    } else if (error instanceof DBErrors.UserAuthorizationError) {
+        res.status(401).json({
+            message: error.message,
+        });
+    } else {
+        res.status(500).json({
+            message: 'Internal server error.',
+        });
+    }
+
+    console.error(error);
+}
+
 app.post(
     '/refresh-token',
     passport.authenticate(['jwt-expired', 'jwt-refresh'], {session: false}),
@@ -161,7 +194,7 @@ app.post('/login', (req, res) => {
 
         res.json({
             user: {
-                uuid: user.uuid,
+                id: user.id,
                 username: user.username,
                 about_me: user.about_me,
             },
@@ -170,61 +203,45 @@ app.post('/login', (req, res) => {
         });
         console.log(`User ${username} has logged in.`);
     } catch (error) {
-        if (
-            error instanceof DBErrors.UserDoesNotExistError ||
-            error instanceof DBErrors.IncorrectPasswordError ||
-            error instanceof DBErrors.InvalidParametersError
-        ) {
-            res.status(401).json({err_msg: error.message});
-        } else {
-            res.status(500).json({err_msg: 'Server error.'});
-        }
-        console.error(error);
+        handleErrors(error, res);
     }
 });
 
 app.post('/signup', (req, res) => {
     try {
-        console.log('User signing up...');
-        const {
-            user_uuid,
-            username,
-            password,
-            about_me,
-        }: {
-            user_uuid: string;
-            username: string;
-            password: string;
-            about_me: string;
-        } = req.body;
-        const user = helpers.insertUser({
-            user_uuid: user_uuid,
-            username: username,
-            password: password,
-            about_me: about_me,
-        });
+        const {username, password, about_me} = req.body;
+
+        if (!username || !password) {
+            throw new DBErrors.IncorrectPasswordError(
+                'Invalied username and or password',
+            );
+        }
+
+        if (helpers.userExists(username)) {
+            throw new DBErrors.UserAlreadyExistsError(
+                'Username already exists',
+            );
+        }
+
+        const user = helpers.insertUser(username, password, about_me);
+
         const refreshToken = createRefreshToken(user);
         helpers.upsertUserToken(user.id, refreshToken);
         res.json({
             user: {
-                uuid: user.uuid,
+                id: user.id,
                 username: user.username,
                 about_me: user.about_me,
             },
             token: createToken(user),
             refreshToken: refreshToken,
         });
-        console.log(`User ${username} has successfully signed up.`);
+
+        console.log(
+            `User ${username} has successfully signed up and logged in.`,
+        );
     } catch (error) {
-        if (
-            error instanceof DBErrors.UserAlreadyExistsError ||
-            error instanceof DBErrors.InvalidParametersError
-        ) {
-            res.status(401).json({err_msg: error.message});
-        } else {
-            res.status(500).json({err_msg: 'Server error.'});
-        }
-        console.error(error);
+        handleErrors(error, res);
     }
 });
 
@@ -234,81 +251,104 @@ app.post(
     (req, res) => {
         try {
             if (req.user) {
-                const user = getUser(req.user.uuid);
+                const user = getUser(req.user.id);
+                if (!user)
+                    throw new DBErrors.GetDataError(
+                        'User not found, could not log out.',
+                    );
                 upsertUserToken(user.id, null);
                 res.json({status_msg: 'OK'});
                 console.log(`User ${user.username} has logged out.`);
             }
         } catch (error) {
-            if (error instanceof DBErrors.GetDataError) {
-                res.status(404).json({
-                    err_msg: 'User not found, could not log out.',
-                });
-            }
-            res.status(500);
-            console.log(error);
+            handleErrors(error, res);
         }
     },
 );
 
 app.get('/self', passport.authenticate('jwt', {session: false}), (req, res) => {
-    if (req.user) {
-        const user = getUser(req.user.uuid);
-        const userapi: UserAPI = {
-            uuid: user.uuid,
+    try {
+        if (!req.user) {
+            throw new DBErrors.UserAuthorizationError('User is not authorized');
+        }
+
+        const user = getUser(req.user.id);
+        if (!user) throw new DBErrors.GetDataError('User not found!');
+        const data: UserAPI = {
+            id: user.id,
             username: user.username,
             about_me: user.about_me,
         };
-        res.json(userapi);
-    } else {
-        res.status(401).end();
+        res.json(data);
+    } catch (error) {
+        handleErrors(error, res);
     }
 });
 
 app.get(
-    '/messages/:room_uuid',
+    '/rooms/:room_id/messages',
     passport.authenticate('jwt', {session: false}),
     (req, res) => {
-        if (!req.user) {
-            res.send(401).end();
-            return;
-        }
+        try {
+            if (!req.user) {
+                throw new DBErrors.UserAuthorizationError(
+                    'User is not authorized',
+                );
+            }
 
-        const room_uuid = req.params.room_uuid;
+            const room_id = BigInt(req.params.room_id);
 
-        if (!helpers.isUserInRoom(req.user.uuid, room_uuid)) {
-            res.send(401).send();
-            return;
-        }
+            if (!helpers.getRoom(room_id)) {
+                throw new DBErrors.GetDataError('Room not found');
+            }
 
-        if (helpers.chatExists(room_uuid)) {
-            res.json(helpers.getChatMessages(room_uuid));
-        } else if (helpers.groupExists(room_uuid)) {
-            res.json(helpers.getGroupMessages(room_uuid));
-        } else {
-            res.status(404).send();
+            if (!helpers.userInRoom(req.user.id, room_id)) {
+                throw new DBErrors.UserAuthorizationError('User not in room');
+            }
+
+            const messages = helpers.getMessages(room_id);
+
+            const data: MessageAPI[] = messages.map(msg => ({
+                id: msg.id,
+                sender_id: msg.sender_id,
+                room_id: msg.room_id,
+                sent_date: msg.sent_date,
+                body: msg.body,
+            }));
+
+            res.json(data);
+        } catch (error: unknown) {
+            handleErrors(error, res);
         }
     },
 );
 
 app.get(
-    '/room/:room_uuid',
+    '/rooms/:room_id',
     passport.authenticate('jwt', {session: false}),
     (req, res) => {
-        if (!req.user) {
-            res.send(401).end();
-            return;
-        }
-
         try {
-            const room_uuid = req.params.room_uuid;
-            const rooms: RoomAPI[] = helpers.getUserRooms(req.user.uuid);
+            if (!req.user) {
+                throw new DBErrors.UserAuthorizationError(
+                    'User is not authorized',
+                );
+            }
+            const room_id = BigInt(req.params.room_id);
+            const room = helpers.getRoom(room_id);
+            if (!room) {
+                throw new DBErrors.GetDataError('Room not found');
+            }
 
-            const room: RoomAPI | undefined = rooms.find(
-                r => r.uuid === room_uuid,
-            );
-            if (!room) throw new Error('Room not found');
-            res.json(room);
+            const data: RoomAPI = {
+                id: room.id,
+                type: room.group_id ? 'group' : 'chat',
+                title: helpers.getRoomTitle(room.id, req.user.id),
+                created_date: room.created_date,
+                last_activity: room.last_activity,
+                members_id: helpers.getMembers(room.id),
+            };
+
+            res.json(data);
         } catch (error) {
             console.error(error);
             res.status(401).send();
@@ -320,42 +360,47 @@ app.get(
     '/rooms',
     passport.authenticate('jwt', {session: false}),
     (req, res) => {
-        if (!req.user) {
-            res.send(401).end();
-            return;
-        }
         try {
-            const rooms: RoomAPI[] = helpers.getUserRooms(req.user.uuid);
-            res.json(rooms);
+            if (!req.user) {
+                throw new DBErrors.UserAuthorizationError(
+                    'User is not authorized',
+                );
+            }
+            const rooms = helpers.getRooms(req.user.id);
+            const data: RoomAPI[] = rooms.map(room => ({
+                id: room.id,
+                type: room.group_id ? 'group' : 'chat',
+                title: helpers.getRoomTitle(room.id, req.user!.id),
+                created_date: room.created_date,
+                last_activity: room.last_activity,
+                members_id: helpers.getMembers(room.id),
+            }));
+            res.json(data);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({err_msg: 'Server error.'});
+            handleErrors(error, res);
         }
     },
 );
 
 app.get(
-    '/members/:room_uuid',
+    '/rooms/:room_id/members',
     passport.authenticate('jwt', {session: false}),
     (req, res) => {
-        if (!req.user) {
-            res.send(401).end();
-            return;
-        }
-
-        const room_uuid = req.params.room_uuid;
-
         try {
-            if (helpers.chatExists(room_uuid)) {
-                res.json(helpers.getChatMembers(room_uuid));
-            } else if (helpers.groupExists(room_uuid)) {
-                res.json(helpers.getGroupMembers(room_uuid));
-            } else {
-                res.status(404).json({err_msg: 'Room not found!'});
+            if (!req.user) {
+                throw new DBErrors.UserAuthorizationError(
+                    'User is not authorized',
+                );
             }
+
+            const room_id = BigInt(req.params.room_id);
+
+            const members = helpers.getMembers(room_id);
+            const data: UserAPI[] = members.map(id => helpers.getUser(id)!);
+
+            res.json(data);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({err_msg: 'Server error.'});
+            handleErrors(error, res);
         }
     },
 );
@@ -381,15 +426,18 @@ io.engine.use(
 io.on('connection', socket => {
     const req = socket.request as Request & {user: Express.User};
     let user = req.user;
-    socket.join(user.uuid);
+    socket.join(String(user.id));
     console.log(`User ${user.username} connected at socket ${socket.id}`);
 
     socket.on(
         'message:send',
-        ({room_uuid, sender_uuid, sent_date, body}: MessageAPI) => {
-            console.log(`New Message: ${body}`);
-            helpers.insertMessage(sender_uuid, room_uuid, sent_date, body);
-            io.emit('message:new', room_uuid);
+        (
+            sender_id: number | bigint,
+            room_id: number | bigint,
+            body: string,
+        ) => {
+            helpers.insertMessage(sender_id, room_id, body);
+            io.emit('message:new', room_id);
         },
     );
 

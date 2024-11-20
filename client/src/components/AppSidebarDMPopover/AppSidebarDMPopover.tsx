@@ -33,22 +33,19 @@ export default function AppSidebarDMPopover({
                 />
                 <ScrollArea>
                     <div className="pr-4">
-                        {contacts.map((contact, i) => (
-                            <>
-                                <div
-                                    key={2 * i}
-                                    className="
-                                        text-sm p-1 hover:bg-accent flex
-                                        flex-row items-center gap-3 cursor-pointer
-                                        "
-                                >
-                                    <MiniProfile
-                                        key={2 * i + 1}
-                                        title={contact.title}
-                                        status="online"
-                                    />
-                                </div>
-                            </>
+                        {contacts.map(contact => (
+                            <div
+                                key={contact.id}
+                                className="
+                                    text-sm p-1 hover:bg-accent flex
+                                    flex-row items-center gap-3 cursor-pointer
+                                    "
+                            >
+                                <MiniProfile
+                                    title={contact.title}
+                                    status="online"
+                                />
+                            </div>
                         ))}
                     </div>
                 </ScrollArea>

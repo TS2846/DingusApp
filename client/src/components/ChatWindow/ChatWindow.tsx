@@ -4,15 +4,15 @@ import {useEffect, useRef} from 'react';
 import Message from '@/components/Message';
 import {scrollToTop} from '@/helpers/uiHelpers.ts';
 import {useCurrentRoom} from '@/contexts/RoomContext';
-import {useMessages} from '@/hooks/useMessages';
+import {useMessages} from '@/hooks/useRooms';
 import {useRoomMembers} from '@/hooks/useRooms.ts';
 
 export default function ChatWindow() {
-    const currentRoomUUID = useCurrentRoom()[0];
+    const currentRoomID = useCurrentRoom()[0]!;
     const {data: messages, isLoading: messagesLoading} =
-        useMessages(currentRoomUUID);
+        useMessages(currentRoomID);
     const {data: members, isLoading: membersLoading} =
-        useRoomMembers(currentRoomUUID);
+        useRoomMembers(currentRoomID);
     const chatBottomRef = useRef(null);
 
     useEffect(() => {
@@ -24,15 +24,15 @@ export default function ChatWindow() {
                 {messagesLoading ? (
                     <></>
                 ) : (
-                    messages!.map((message, index) => (
+                    messages!.map(message => (
                         <Message
-                            key={index}
+                            key={message.id}
                             sender={
                                 membersLoading
-                                    ? message.sender_uuid
-                                    : members!.find(
-                                          m => m.uuid === message.sender_uuid,
-                                      )!.username
+                                    ? ''
+                                    : members?.find(
+                                          m => m.id === message.sender_id,
+                                      )?.username || ''
                             }
                             body={message.body}
                         />

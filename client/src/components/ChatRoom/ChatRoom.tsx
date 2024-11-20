@@ -13,8 +13,10 @@ export default function ChatRoom() {
         const socket = getSocket();
         socket.connect();
 
-        const onNewMessage = (room_uuid: string) => {
-            client.invalidateQueries({queryKey: ['messages', room_uuid]});
+        const onNewMessage = (room_id: number | bigint) => {
+            client.invalidateQueries({
+                queryKey: ['rooms', room_id, 'messages'],
+            });
         };
 
         socket.on('message:new', onNewMessage);

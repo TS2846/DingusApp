@@ -4,7 +4,6 @@ import {Button} from '@/components/ui/button.tsx';
 import {Textarea} from '@/components/ui/textarea.tsx';
 
 import getSocket from '@/socket.ts';
-import {MessageAPI} from '@/interfaces/apiInterfaces';
 import useSelf from '@/hooks/useSelf';
 import {useCurrentRoom} from '@/contexts/RoomContext';
 
@@ -12,20 +11,15 @@ export default function ChatInput() {
     const socket = getSocket();
     const [messageInput, setMessageInput] = useState('');
     const {data: self, isLoading: userLoading} = useSelf();
-    const currentRoomUUID = useCurrentRoom()[0];
+    const currentRoomID = useCurrentRoom()[0];
 
     const onMessageSubmit = () => {
         const body = messageInput.trim();
         if (body === '' || userLoading) return;
 
         setMessageInput('');
-        const message: MessageAPI = {
-            sender_uuid: self!.uuid,
-            room_uuid: currentRoomUUID,
-            sent_date: Date.now(),
-            body: body,
-        };
-        socket.emit('message:send', message);
+
+        socket.emit('message:send', self!.id, currentRoomID, body);
     };
 
     return (

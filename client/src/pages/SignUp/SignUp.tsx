@@ -3,7 +3,6 @@ import {useState, Dispatch, SetStateAction} from 'react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {v4 as uuidv4} from 'uuid';
 import {signup} from '@/api';
 import {useAuthentication} from '@/contexts/AuthenticationContext';
 
@@ -19,7 +18,7 @@ export default function SignUp({setRequest}: SignUpProps) {
 
     const onSignupSubmit = () => {
         if (!username.trim() || !password.trim()) return;
-        signup(uuidv4(), username, password, aboutMe)
+        signup(username, password, aboutMe)
             .then(res => {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('refreshToken', res.data.refreshToken);

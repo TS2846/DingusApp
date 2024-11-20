@@ -1,9 +1,9 @@
 import api from '@/api';
 
 import {useQuery} from '@tanstack/react-query';
-import {RoomAPI, UserAPI} from '@/interfaces/apiInterfaces.ts';
+import {RoomAPI, UserAPI, MessageAPI} from '@/interfaces/apiInterfaces.ts';
 
-export const useAllRooms = () => {
+export const useRooms = () => {
     return useQuery<RoomAPI[]>({
         queryKey: ['rooms'],
         queryFn: async () => {
@@ -14,22 +14,26 @@ export const useAllRooms = () => {
     });
 };
 
-export const useRoom = (room_uuid: string) => {
-    return useQuery<RoomAPI>({
-        queryKey: ['room', room_uuid],
+export const useRoomMembers = (room_id: number | bigint) => {
+    return useQuery<UserAPI[]>({
+        queryKey: ['rooms', room_id, 'members'],
         queryFn: async () => {
-            const response = await api.get<RoomAPI>(`/room/${room_uuid}`);
+            const response = await api.get<UserAPI[]>(
+                `/rooms/${room_id}/members`,
+            );
             return response.data;
         },
         staleTime: 1000 * 60 * 60,
     });
 };
 
-export const useRoomMembers = (room_uuid: string) => {
-    return useQuery<UserAPI[]>({
-        queryKey: ['room', room_uuid, 'members'],
+export const useMessages = (room_id: number | bigint) => {
+    return useQuery<MessageAPI[]>({
+        queryKey: ['rooms', room_id, 'messages'],
         queryFn: async () => {
-            const response = await api.get<UserAPI[]>(`/members/${room_uuid}`);
+            const response = await api.get<MessageAPI[]>(
+                `/rooms/${room_id}/messages`,
+            );
             return response.data;
         },
         staleTime: 1000 * 60 * 60,

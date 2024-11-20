@@ -25,7 +25,7 @@ import MiniProfile from '@/components/MiniProfile';
 import SidebarFindRoomDialogue from '@/components/SidebarFindRoomDialogue';
 import AppSidebarDMPopover from '@/components/AppSidebarDMPopover';
 import SidebarMenuItem from '@/components/SidebarMenuItem';
-import {useAllRooms} from '@/hooks/useRooms.ts';
+import {useRooms} from '@/hooks/useRooms.ts';
 import useSelf from '@/hooks/useSelf';
 import {useAuthentication} from '@/contexts/AuthenticationContext';
 import {logout} from '@/api';
@@ -45,10 +45,10 @@ const sidebarMenuItems = [
 ];
 
 export default function AppSidebar() {
-    const {data: rooms} = useAllRooms();
+    const {data: rooms} = useRooms();
     const {data: selfData} = useSelf();
     const setAuthenticated = useAuthentication()[1];
-    const [currentRoomUUID, setCurrentRoomUUID] = useCurrentRoom();
+    const [currentRoomID, setCurrentRoomID] = useCurrentRoom();
     const client = useQueryClient();
 
     const onLogout = () => {
@@ -93,13 +93,14 @@ export default function AppSidebar() {
                         <div className="pr-4 flex flex-col gap-1">
                             {rooms?.map((room, i) => (
                                 <div
+                                    key={i}
                                     className={`
                                         flex flex-row items-center justify-between
                                         hover:bg-accent cursor-pointer rounded-sm
-                                        group/item ${currentRoomUUID === room.uuid ? 'bg-accent' : ''}
+                                        group/item ${currentRoomID === room.id ? 'bg-accent' : ''}
                                         `}
                                     onClick={() => {
-                                        setCurrentRoomUUID(room.uuid);
+                                        setCurrentRoomID(room.id);
                                     }}
                                 >
                                     <div

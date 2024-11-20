@@ -5,13 +5,15 @@ import AppSidebar from '@/components/AppSidebar';
 import RoomContext from '@/contexts/RoomContext';
 
 export default function AppLayout({children}: {children: React.ReactNode}) {
-    const [currentRoomUUID, setCurrentRoomUUID] = useState('');
+    const [currentRoomID, setCurrentRoomID] = useState<number | bigint | null>(
+        null,
+    );
     return (
-        <RoomContext.Provider value={[currentRoomUUID, setCurrentRoomUUID]}>
+        <RoomContext.Provider value={[currentRoomID, setCurrentRoomID]}>
             <SidebarProvider>
                 <AppSidebar />
                 <main className="w-full grid grid-rows-10 bg-secondary">
-                    {currentRoomUUID === '' ? <></> : children}
+                    {currentRoomID ? children : <></>}
                 </main>
             </SidebarProvider>
         </RoomContext.Provider>

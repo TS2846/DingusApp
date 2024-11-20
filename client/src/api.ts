@@ -38,14 +38,8 @@ export const refresh = () => api.post<ServerResponse>('/refresh-token');
 export const login = (username: string, password: string) =>
     api.post<AuthenticationResponse>('/login', {username, password});
 
-export const signup = (
-    user_uuid: string,
-    username: string,
-    password: string,
-    about_me: string,
-) =>
+export const signup = (username: string, password: string, about_me: string) =>
     api.post<AuthenticationResponse>('/signup', {
-        user_uuid,
         username,
         password,
         about_me,

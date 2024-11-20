@@ -38,7 +38,6 @@ Since the `client` and `server` needs to communicate with each other you
 -   [tailwind-merge](https://www.npmjs.com/package/tailwind-merge)
 -   [react-icons](https://www.npmjs.com/package/react-icons)
 -   [react-html-props](https://www.npmjs.com/package/react-html-props)
--   [uuid](https://www.npmjs.com/package/uuid)
 -   [nodemon](https://www.npmjs.com/package/nodemon)
 -   [bcrypt](https://www.npmjs.com/package/bcrypt)
 -   [better-sqlite3](https://www.npmjs.com/package/better-sqlite3)
