@@ -130,10 +130,10 @@ export function addGroup(title: string, members: ID[]): RoomModel {
     return room;
 }
 
-export function joinGroup(user_id: ID, room_id: ID): RoomModel | null {
+export function addMember(member_id: ID, room_id: ID): RoomModel | null {
     const room = getRoom(room_id);
     if (!room || !room.group_id) return null;
-    addUserToRoom(user_id, room_id);
+    addUserToRoom(member_id, room_id);
     return room;
 }
 

@@ -44,7 +44,13 @@ export default function UserEntry() {
             <AuthenticationContext.Provider
                 value={[isAuthenticated, setAuthenticated]}
             >
-                <SignUp setRequest={setRequest} />
+                <div className="h-full relative">
+                    <img
+                        src="public/favicon.ico"
+                        className="absolute top-0 left-0 right-0 ml-auto mr-auto scale-75"
+                    />
+                    <SignUp setRequest={setRequest} />
+                </div>
             </AuthenticationContext.Provider>
         );
     } else {
@@ -52,7 +58,13 @@ export default function UserEntry() {
             <AuthenticationContext.Provider
                 value={[isAuthenticated, setAuthenticated]}
             >
-                <Login setRequest={setRequest} />
+                <div className="h-full relative">
+                    <img
+                        src="public/favicon.ico"
+                        className="absolute top-10 left-0 right-0 ml-auto mr-auto scale-75"
+                    />
+                    <Login setRequest={setRequest} />
+                </div>
             </AuthenticationContext.Provider>
         );
     }
