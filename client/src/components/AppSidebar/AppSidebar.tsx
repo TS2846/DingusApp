@@ -28,7 +28,7 @@ import SidebarMenuItem from '@/components/SidebarMenuItem';
 import {useRooms} from '@/hooks/useRooms.ts';
 import useSelf from '@/hooks/useSelf';
 import {useAuthentication} from '@/contexts/AuthenticationContext';
-import {logout} from '@/api';
+import {logout} from '@/hooks/useRequest';
 import {useCurrentRoom} from '@/contexts/RoomContext';
 
 const sidebarMenuItems = [

@@ -30,7 +30,7 @@ export default function ChatInput() {
             <div className="flex flex-row gap-2 w-full items-center">
                 <Textarea
                     id="message-input"
-                    className="resize-none grow bg-muted font-mono"
+                    className="resize-none grow bg-muted"
                     value={messageInput}
                     onChange={e => setMessageInput(e.target.value)}
                     onKeyDown={e => {

@@ -5,7 +5,7 @@ import Login from '@/pages/Login';
 import ChatRoom from '@/components/ChatRoom';
 import AppLayout from '@/layout/AppLayout';
 import AuthenticationContext from '@/contexts/AuthenticationContext';
-import {refresh} from '@/api';
+import {refresh} from '@/hooks/useRequest';
 
 export default function UserEntry() {
     const [request, setRequest] = useState('login');

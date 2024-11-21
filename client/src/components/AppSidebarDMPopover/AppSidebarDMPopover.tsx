@@ -5,6 +5,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover.tsx';
+import {PopoverClose} from '@radix-ui/react-popover';
 import {FaPlus} from 'react-icons/fa6';
 import {Input} from '@/components/ui/input.tsx';
 import {ScrollArea} from '@/components/ui/scroll-area.tsx';
@@ -81,27 +82,29 @@ export default function AppSidebarDMPopover() {
                         )}
                     </div>
                 </ScrollArea>
-                <Button
-                    className="w-full"
-                    disabled={isUserLoading || !user}
-                    onClick={() => {
-                        if (!isUserLoading && user) {
-                            if (!members) {
-                                return;
+                <PopoverClose>
+                    <Button
+                        className="w-full"
+                        disabled={isUserLoading || !user}
+                        onClick={() => {
+                            if (!isUserLoading && user) {
+                                if (!members) {
+                                    return;
+                                }
+                                console.log(
+                                    `Creating groups with ${[user.id, ...members]}`,
+                                );
+                                socket.emit('group:create', null, [
+                                    user.id,
+                                    ...members,
+                                ]);
+                                setMembers([]);
                             }
-                            console.log(
-                                `Creating groups with ${[user.id, ...members]}`,
-                            );
-                            socket.emit('group:create', null, [
-                                user.id,
-                                ...members,
-                            ]);
-                            setMembers([]);
-                        }
-                    }}
-                >
-                    Create DM
-                </Button>
+                        }}
+                    >
+                        Create DM
+                    </Button>
+                </PopoverClose>
             </PopoverContent>
         </Popover>
     );

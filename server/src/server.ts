@@ -481,10 +481,7 @@ io.on('connection', socket => {
     });
 
     socket.on('group:create', (title: string | null, members: ID[]) => {
-        const rooms = helpers.addGroup(
-            title || `${req.user.username}'s room`,
-            members,
-        );
+        helpers.addGroup(title || `${req.user.username}'s room`, members);
         io.emit('group:created');
     });
 

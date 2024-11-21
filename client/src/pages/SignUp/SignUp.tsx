@@ -1,10 +1,11 @@
-import {useState, Dispatch, SetStateAction} from 'react';
+import {useState, useEffect, Dispatch, SetStateAction} from 'react';
 
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {signup} from '@/api';
 import {useAuthentication} from '@/contexts/AuthenticationContext';
+import {useSignup} from '@/hooks/useRequest';
+import AuthenticationLoading from '@/components/Loading';
 
 type SignUpProps = {
     setRequest: Dispatch<SetStateAction<string>>;
@@ -15,19 +16,26 @@ export default function SignUp({setRequest}: SignUpProps) {
     const [password, setPassword] = useState('');
     const [aboutMe, setAboutMe] = useState('');
     const setAuthenticated = useAuthentication()[1];
+    const {isLoading, data, queryFn: signup} = useSignup();
 
     const onSignupSubmit = () => {
-        if (!username.trim() || !password.trim()) return;
-        signup(username, password, aboutMe)
-            .then(res => {
-                localStorage.setItem('token', res.data.token);
-                localStorage.setItem('refreshToken', res.data.refreshToken);
-                setAuthenticated(true);
-            })
-            .catch(console.error);
+        if (!username.trim() || !password.trim() || isLoading) return;
+        signup(username, password, aboutMe);
     };
 
-    return (
+    useEffect(() => {
+        if (data) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('refreshToken', data.refreshToken);
+            setAuthenticated(true);
+        }
+    }, [data]);
+
+    return isLoading ? (
+        <div className="w-full h-full flex justify-center items-center">
+            <AuthenticationLoading />
+        </div>
+    ) : (
         <form className="w-full h-full flex flex-col items-center justify-center gap-3">
             <div className="w-56 flex flex-col gap-1">
                 <Label htmlFor="username">Username</Label>
