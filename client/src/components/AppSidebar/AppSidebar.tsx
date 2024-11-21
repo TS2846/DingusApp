@@ -30,15 +30,26 @@ import useSelf from '@/hooks/useSelf';
 import {useAuthentication} from '@/contexts/AuthenticationContext';
 import {logout} from '@/api';
 import {useCurrentRoom} from '@/contexts/RoomContext';
+import {pageStatusType, usePageStatus} from '@/contexts/PageStatusContext';
+import {IconType} from 'react-icons';
 
-const sidebarMenuItems = [
+type sidebarMenuItemType = {
+    title: string;
+    status: pageStatusType;
+    icon: IconType;
+    iconSize: number;
+};
+
+const sidebarMenuItems: sidebarMenuItemType[] = [
     {
         title: 'Friends',
+        status: 'friends',
         icon: FaUserFriends,
         iconSize: 25,
     },
     {
         title: 'ChatBot',
+        status: 'chatbot',
         icon: FaRobot,
         iconSize: 25,
     },
@@ -50,7 +61,7 @@ export default function AppSidebar() {
     const setAuthenticated = useAuthentication()[1];
     const [currentRoomID, setCurrentRoomID] = useCurrentRoom();
     const client = useQueryClient();
-
+    const setPageStatus = usePageStatus()[1];
     const onLogout = () => {
         logout()
             .then(() => {
@@ -77,6 +88,10 @@ export default function AppSidebar() {
                                     title={item.title}
                                     Icon={item.icon}
                                     iconSize={item.iconSize}
+                                    onClick={() => {
+                                        setPageStatus(item.status);
+                                        setCurrentRoomID(null);
+                                    }}
                                 />
                             ))}
                         </SidebarMenu>
@@ -97,10 +112,15 @@ export default function AppSidebar() {
                                     className={`
                                         flex flex-row items-center justify-between
                                         hover:bg-accent cursor-pointer rounded-sm
-                                        group/item ${currentRoomID === room.id ? 'bg-accent' : ''}
+                                        group/item ${
+                                            currentRoomID === room.id
+                                                ? 'bg-accent'
+                                                : ''
+                                        }
                                         `}
                                     onClick={() => {
                                         setCurrentRoomID(room.id);
+                                        setPageStatus('room');
                                     }}
                                 >
                                     <div
