@@ -5,7 +5,7 @@ import Login from '@/pages/Login';
 import ChatRoom from '@/components/ChatRoom';
 import AppLayout from '@/layout/AppLayout';
 import AuthenticationContext from '@/contexts/AuthenticationContext';
-import {refresh} from '@/api';
+import {refresh} from '@/hooks/useRequest';
 
 export default function UserEntry() {
     const [request, setRequest] = useState('login');
@@ -46,7 +46,7 @@ export default function UserEntry() {
             >
                 <div className="h-full relative">
                     <img
-                        src="public/favicon.ico"
+                        src="/favicon.ico"
                         className="absolute top-0 left-0 right-0 ml-auto mr-auto scale-75"
                     />
                     <SignUp setRequest={setRequest} />
@@ -60,7 +60,7 @@ export default function UserEntry() {
             >
                 <div className="h-full relative">
                     <img
-                        src="public/favicon.ico"
+                        src="/favicon.ico"
                         className="absolute top-10 left-0 right-0 ml-auto mr-auto scale-75"
                     />
                     <Login setRequest={setRequest} />

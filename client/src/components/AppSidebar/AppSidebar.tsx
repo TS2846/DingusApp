@@ -28,7 +28,7 @@ import SidebarMenuItem from '@/components/SidebarMenuItem';
 import {useRooms} from '@/hooks/useRooms.ts';
 import useSelf from '@/hooks/useSelf';
 import {useAuthentication} from '@/contexts/AuthenticationContext';
-import {logout} from '@/api';
+import {logout} from '@/hooks/useRequest';
 import {useCurrentRoom} from '@/contexts/RoomContext';
 import {pageStatusType, usePageStatus} from '@/contexts/PageStatusContext';
 import {IconType} from 'react-icons';
@@ -102,7 +102,7 @@ export default function AppSidebar() {
                         <div className="flex flex-row items-center justify-between w-full">
                             <span>Direct Messages</span>
                         </div>
-                        <AppSidebarDMPopover contacts={rooms || []} />
+                        <AppSidebarDMPopover />
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <div className="pr-4 flex flex-col gap-1">
