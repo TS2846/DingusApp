@@ -1,71 +1,44 @@
-import {useState, useEffect} from 'react';
+import {useEffect} from 'react';
 
 import SignUp from '@/pages/SignUp';
 import Login from '@/pages/Login';
-import ChatRoom from '@/components/ChatRoom';
-import AppLayout from '@/layout/AppLayout';
-import AuthenticationContext from '@/contexts/AuthenticationContext';
+import ChatApp from '@/pages/ChatApp';
 import {refresh} from '@/hooks/useRequest';
+import {useRoute} from '@/contexts/RouteContext';
 
 export default function UserEntry() {
-    const [request, setRequest] = useState('login');
-    const [isAuthenticated, setAuthenticated] = useState<boolean>(false);
-
+    const {route, isAuthenticated, setAuthenticated} = useRoute();
     useEffect(() => {
-        if (localStorage.getItem('refreshToken')) {
+        if (
+            ['login', 'signup'].includes(route) &&
+            localStorage.getItem('refreshToken') &&
+            localStorage.getItem('token')
+        ) {
             refresh()
                 .then(res => {
                     localStorage.setItem('token', res.data.token);
                     localStorage.setItem('refreshToken', res.data.refreshToken);
                     setAuthenticated(true);
-                    console.log('Refresh success');
                 })
                 .catch(() => {
                     localStorage.removeItem('token');
                     localStorage.removeItem('refreshToken');
                     setAuthenticated(false);
-                    console.log('Refresh failed');
                 });
         }
-    }, []);
+    }, [route]);
 
-    if (isAuthenticated) {
-        return (
-            <AuthenticationContext.Provider
-                value={[isAuthenticated, setAuthenticated]}
-            >
-                <AppLayout>
-                    <ChatRoom />
-                </AppLayout>
-            </AuthenticationContext.Provider>
-        );
-    } else if (request === 'signup') {
-        return (
-            <AuthenticationContext.Provider
-                value={[isAuthenticated, setAuthenticated]}
-            >
-                <div className="h-full relative">
-                    <img
-                        src="/favicon.ico"
-                        className="absolute top-0 left-0 right-0 ml-auto mr-auto scale-75"
-                    />
-                    <SignUp setRequest={setRequest} />
+    const renderPage = () => {
+        if (isAuthenticated) {
+            return <ChatApp />;
+        } else {
+            return (
+                <div className="h-full">
+                    {route === 'signup' ? <SignUp /> : <Login />}
                 </div>
-            </AuthenticationContext.Provider>
-        );
-    } else {
-        return (
-            <AuthenticationContext.Provider
-                value={[isAuthenticated, setAuthenticated]}
-            >
-                <div className="h-full relative">
-                    <img
-                        src="/favicon.ico"
-                        className="absolute top-10 left-0 right-0 ml-auto mr-auto scale-75"
-                    />
-                    <Login setRequest={setRequest} />
-                </div>
-            </AuthenticationContext.Provider>
-        );
-    }
+            );
+        }
+    };
+
+    return renderPage();
 }

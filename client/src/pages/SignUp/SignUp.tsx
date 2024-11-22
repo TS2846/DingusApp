@@ -1,22 +1,18 @@
-import {useState, useEffect, Dispatch, SetStateAction} from 'react';
+import {useState, useEffect} from 'react';
 
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {useAuthentication} from '@/contexts/AuthenticationContext';
 import {useSignup} from '@/hooks/useRequest';
 import AuthenticationLoading from '@/components/Loading';
+import {useRoute} from '@/contexts/RouteContext';
 
-type SignUpProps = {
-    setRequest: Dispatch<SetStateAction<string>>;
-};
-
-export default function SignUp({setRequest}: SignUpProps) {
+export default function SignUp() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [aboutMe, setAboutMe] = useState('');
-    const setAuthenticated = useAuthentication()[1];
     const {isLoading, data, queryFn: signup} = useSignup();
+    const {setRoute, setAuthenticated} = useRoute();
 
     const onSignupSubmit = () => {
         if (!username.trim() || !password.trim() || isLoading) return;
@@ -36,7 +32,10 @@ export default function SignUp({setRequest}: SignUpProps) {
             <AuthenticationLoading />
         </div>
     ) : (
-        <form className="w-full h-full flex flex-col items-center justify-center gap-3">
+        <form
+            className="w-full h-full flex flex-col 
+                items-center justify-center gap-3"
+        >
             <div className="w-56 flex flex-col gap-1">
                 <Label htmlFor="username">Username</Label>
                 <Input
@@ -85,7 +84,7 @@ export default function SignUp({setRequest}: SignUpProps) {
                         className="mx-1 px-2 hover:bg-gray-500 hover:text-white"
                         onClick={e => {
                             e.preventDefault();
-                            setRequest('login');
+                            setRoute('login');
                         }}
                         variant="ghost"
                     >

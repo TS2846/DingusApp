@@ -27,15 +27,14 @@ import AppSidebarDMPopover from '@/components/AppSidebarDMPopover';
 import SidebarMenuItem from '@/components/SidebarMenuItem';
 import {useRooms} from '@/hooks/useRooms.ts';
 import useSelf from '@/hooks/useSelf';
-import {useAuthentication} from '@/contexts/AuthenticationContext';
 import {logout} from '@/hooks/useRequest';
-import {useCurrentRoom} from '@/contexts/RoomContext';
-import {pageStatusType, usePageStatus} from '@/contexts/PageStatusContext';
 import {IconType} from 'react-icons';
+import {useRoute} from '@/contexts/RouteContext';
+import {getRoomIDFromRoute} from '@/helpers/routeHelpers';
 
 type sidebarMenuItemType = {
     title: string;
-    status: pageStatusType;
+    route: string;
     icon: IconType;
     iconSize: number;
 };
@@ -43,13 +42,13 @@ type sidebarMenuItemType = {
 const sidebarMenuItems: sidebarMenuItemType[] = [
     {
         title: 'Friends',
-        status: 'friends',
+        route: 'friends',
         icon: FaUserFriends,
         iconSize: 25,
     },
     {
         title: 'ChatBot',
-        status: 'chatbot',
+        route: 'chatbot',
         icon: FaRobot,
         iconSize: 25,
     },
@@ -58,10 +57,9 @@ const sidebarMenuItems: sidebarMenuItemType[] = [
 export default function AppSidebar() {
     const {data: rooms} = useRooms();
     const {data: selfData} = useSelf();
-    const setAuthenticated = useAuthentication()[1];
-    const [currentRoomID, setCurrentRoomID] = useCurrentRoom();
+    const {route, setRoute, setAuthenticated} = useRoute();
+    const currentRoomID = getRoomIDFromRoute(route);
     const client = useQueryClient();
-    const setPageStatus = usePageStatus()[1];
     const onLogout = () => {
         logout()
             .then(() => {
@@ -88,9 +86,9 @@ export default function AppSidebar() {
                                     title={item.title}
                                     Icon={item.icon}
                                     iconSize={item.iconSize}
+                                    selected={route.startsWith(item.route)}
                                     onClick={() => {
-                                        setPageStatus(item.status);
-                                        setCurrentRoomID(null);
+                                        setRoute(item.route);
                                     }}
                                 />
                             ))}
@@ -119,8 +117,7 @@ export default function AppSidebar() {
                                         }
                                         `}
                                     onClick={() => {
-                                        setCurrentRoomID(room.id);
-                                        setPageStatus('room');
+                                        setRoute(`room/${room.id}`);
                                     }}
                                 >
                                     <div

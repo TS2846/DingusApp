@@ -3,7 +3,7 @@ import ChatRoomHeader from '@/components/ChatRoomHeader';
 import ChatInput from '@/components/ChatInput';
 import ChatWindow from '@/components/ChatWindow';
 
-export default function ChatRoom() {
+export default function Room() {
     return (
         <ChatRoomLayout
             ChatHeader={<ChatRoomHeader />}

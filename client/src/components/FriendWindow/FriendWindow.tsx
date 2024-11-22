@@ -2,13 +2,11 @@ import {ScrollArea, ScrollBar} from '@/components/ui/scroll-area.tsx';
 import useContacts from '@/hooks/useContacts';
 import {PiChatCircleDotsFill} from 'react-icons/pi';
 import MiniProfile from '../MiniProfile';
-import {useCurrentRoom} from '@/contexts/RoomContext';
-import {usePageStatus} from '@/contexts/PageStatusContext';
+import {useRoute} from '@/contexts/RouteContext';
 
 export default function FriendWindow() {
     const {data} = useContacts();
-    const setCurrentRoomID = useCurrentRoom()[1];
-    const setPageStatus = usePageStatus()[1];
+    const {setRoute} = useRoute();
     return (
         <ScrollArea className="h-full overflow-y-auto bg-primary-foreground">
             <div className="flex flex-col gap-3 mt-2">
@@ -16,8 +14,7 @@ export default function FriendWindow() {
                     <div
                         className="flex flex-row p-3 rounded-md hover:bg-accent cursor-pointer justify-between"
                         onClick={() => {
-                            setCurrentRoomID(friend.room_id);
-                            setPageStatus('room');
+                            setRoute(`room/${friend.room_id}`);
                         }}
                     >
                         <div className="flex flex-row items-center justify-center gap-3">

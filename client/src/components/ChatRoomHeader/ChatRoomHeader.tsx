@@ -13,11 +13,13 @@ import {Input} from '@/components/ui/input';
 import MiniProfile from '@/components/MiniProfile';
 import MenuIcons from '@/components/MenuIcons';
 import {useRooms} from '@/hooks/useRooms';
-import {useCurrentRoom} from '@/contexts/RoomContext';
 import {useRoomMembers} from '@/hooks/useRooms';
+import {useRoute} from '@/contexts/RouteContext';
+import {getRoomIDFromRoute} from '@/helpers/routeHelpers';
 
 export default function ChatRoomHeader() {
-    const currentRoomID = useCurrentRoom()[0];
+    const {route} = useRoute();
+    const currentRoomID = getRoomIDFromRoute(route);
     const {data: rooms, isLoading, isError} = useRooms();
     const {data: members, isLoading: isMembersLoading} = useRoomMembers(
         currentRoomID!,

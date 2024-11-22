@@ -1,21 +1,17 @@
-import {useState, useEffect, Dispatch, SetStateAction} from 'react';
+import {useState, useEffect} from 'react';
 
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
+import {useRoute} from '@/contexts/RouteContext';
 import {useLogin} from '@/hooks/useRequest';
-import {useAuthentication} from '@/contexts/AuthenticationContext';
 import AuthenticationLoading from '@/components/Loading';
 
-type LoginProps = {
-    setRequest: Dispatch<SetStateAction<string>>;
-};
-
-export default function Login({setRequest}: LoginProps) {
+export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const setAuthenticated = useAuthentication()[1];
     const {isLoading, data, queryFn: login} = useLogin();
+    const {setRoute, setAuthenticated} = useRoute();
 
     const onLoginSubmit = () => {
         if (!username.trim() || !password.trim() || isLoading) return;
@@ -36,7 +32,8 @@ export default function Login({setRequest}: LoginProps) {
         </div>
     ) : (
         <form
-            className="w-full h-full flex flex-col items-center justify-center gap-1"
+            className="w-full h-full flex flex-col 
+                items-center justify-center gap-1"
             onSubmit={event => {
                 event.preventDefault();
                 onLoginSubmit();
@@ -82,7 +79,7 @@ export default function Login({setRequest}: LoginProps) {
                         className="mx1 px-2 hover:bg-gray-500 hover:text-white"
                         onClick={e => {
                             e.preventDefault();
-                            setRequest('signup');
+                            setRoute('signup');
                         }}
                         variant="ghost"
                     >

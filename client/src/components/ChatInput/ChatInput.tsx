@@ -5,13 +5,15 @@ import {Textarea} from '@/components/ui/textarea.tsx';
 
 import getSocket from '@/socket.ts';
 import useSelf from '@/hooks/useSelf';
-import {useCurrentRoom} from '@/contexts/RoomContext';
+import {useRoute} from '@/contexts/RouteContext';
+import {getRoomIDFromRoute} from '@/helpers/routeHelpers';
 
 export default function ChatInput() {
     const socket = getSocket();
     const [messageInput, setMessageInput] = useState('');
     const {data: self, isLoading: userLoading} = useSelf();
-    const currentRoomID = useCurrentRoom()[0];
+    const {route} = useRoute();
+    const currentRoomID = getRoomIDFromRoute(route);
 
     const onMessageSubmit = () => {
         const body = messageInput.trim();
